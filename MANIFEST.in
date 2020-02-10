@@ -1,0 +1,6 @@
+
+include COPYING.txt
+
+recursive-include docs *.html *.css *.png *.gif *.pdf
+recursive-include examples *.py
+recursive-include tartes/test *.py

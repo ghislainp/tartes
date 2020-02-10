@@ -1,0 +1,583 @@
+\documentclass[a4paper,11pt]{article}
+\pagestyle{headings}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[normalem]{ulem}
+\usepackage[english]{babel}
+\usepackage[round]{natbib} %round
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{geometry}
+\geometry{width=18cm}
+\usepackage[capitalise]{cleveref}
+\linespread{1.25}
+\usepackage{minitoc}
+%\usepackage{natbib}
+ 
+\begin{document}
+\title{Scientific documentation for TARTES}
+%\author{Q. Libois}
+\date{}
+\maketitle
+
+This document describes the Two-streAm Radiative TransfEr in Snow (TARTES) model. TARTES computes the spectral albedo and irradiance profiles of a multilayer snowpack which physical properties are known. It also computes the broadband albedo and energy absorption profiles to compute the energy budget of the snowpack. All technical details about the resolution of the radiative transfer equation using the $\delta$-Eddington approximation and the determination of snow single scattering properties from snow physical properties are given below.
+
+\tableofcontents
+
+\section{Radiative transfer theory}
+\subsection{The radiative transfer equation}
+
+
+
+The radiative transfer equation \citep[e.g.][]{chandrasekhar_radiative_1960} describes the intensity field in a homogeneous absorbing and scattering medium. Such a medium is characterized by its extinction coefficient $\sigma_e$ (m$^{-1}$), its scattering coefficient $\sigma_s$ (m$^{-1}$) and its scattering phase function $p$. The absorption coefficient is defined as $\sigma_a=\sigma_e-\sigma_s$. The phase function $p(\theta,\phi,\theta',\phi')$ describes the probability that light be scattered in the direction $(\theta,\phi)$ when coming from the direction $(\theta',\phi')$. Here we consider an horizontal multilayer snowpack. Each layer of the snowpack is assumed to have homogeneous physical characteristics. The snowpack is illuminated at the surface by a solar beam whith zenith angle $\theta_0$. There are no internal sources of light in the snowpack. Inside the snowpack, the intensity $I$ is defined along the direction $s$ characterized by the azimuthal angle $\phi$ and the zenith angle $\theta$. Along $s$, intensity decreases due to extinction (absorption and scattering) but increases due to scattering from other directions $(\theta',\phi')$:
+
+\begin{equation}
+\dfrac{dI(s,\theta,\phi)}{ds}=\underbrace{-\sigma_e I(s,\theta,\phi)}_{\textrm{Extinction}}+\underbrace{\sigma_s\displaystyle\int\limits_{\Omega'}p(\theta,\phi,\theta',\phi')I(s,\theta',\phi')\mathrm{d}\Omega'}_{\textrm{Scattering}},
+\label{RT0}
+\end{equation}
+where the phase function is normalized so that $\dfrac{1}{4\pi}\displaystyle\int\limits_{\Omega'}p(\theta,\phi,\theta',\phi')\mathrm{d}\Omega'=1$.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=8cm]{PlanParallele}
+\caption{Geometry of the stratified snowpack}
+\label{PlanParallele}
+\end{figure} 
+
+\noindent We rewrite $\mathrm{d}\Omega'=\sin\theta'\mathrm{d}\theta'\mathrm{d}\phi'$ so that Eq.~\ref{RT0} becomes
+
+\begin{equation}
+\dfrac{dI(s,\theta,\phi)}{ds}=-\sigma_e I(s,\theta,\phi)+\dfrac{\sigma_s}{4\pi}\displaystyle\int\limits_{0}^{\pi}\displaystyle\int\limits_{0}^{2\pi}p(\theta,\phi,\theta',\phi')I(s,\theta',\phi')\sin\theta'\mathrm{d}\theta'\mathrm{d}\phi'.
+\label{RT1}
+\end{equation}
+
+\noindent We perform the variable change $\mu=\cos\theta$ so that $\mathrm{d}\Omega'=-\mathrm{d}\mu'\mathrm{d}\phi'$ and
+
+\begin{equation}
+\dfrac{dI(s,\mu,\phi)}{ds}=-\sigma_e I(s,\mu,\phi)+\dfrac{\sigma_s}{4\pi}\displaystyle\int\limits_{-1}^{1}\displaystyle\int\limits_{0}^{2\pi}p(\mu,\phi,\mu',\phi')I(s,\mu',\phi')\mathrm{d}\phi' \mathrm{d} \mu'.
+\label{RT2}
+\end{equation}
+
+\noindent Eventually we define the variations of optical depth $\mathrm{d}\tau= \sigma_e \mu \mathrm{d}s$ and the single scattering albedo $\omega=\sigma_s/\sigma_e$. Hence Eq.~\ref{RT2} can be written: 
+
+\begin{equation}
+\mu\dfrac{dI(\tau,\mu,\phi)}{d\tau}= -I(\tau,\mu,\phi)+\dfrac{\omega}{4\pi}\displaystyle\int\limits_{-1}^{1}\displaystyle\int\limits_{0}^{2\pi}p(\mu,\phi,\mu',\phi')I(\tau,\mu',\phi')\mathrm{d}\phi' \mathrm{d} \mu'.
+\label{RT3}
+\end{equation}
+
+\noindent We assume that within each layer snow is isotropic, so that the phase function depends only on the angle of deviation $\Theta$ between the incident and scattered light. This angle is given by:
+
+\begin{equation}
+\cos\Theta=\mu \mu' + \sqrt{(1-\mu^2)(1-\mu'^2)}\cos(\phi-\phi').
+\end{equation}
+
+\noindent $p(\cos\Theta)$ is now expanded in Legendre polynomials:
+
+\begin{equation}
+p(\cos\Theta)=\displaystyle\sum\limits_{l=0}^{\infty}\omega_l P_l(\cos\Theta),
+\end{equation}
+where $\omega_l=\dfrac{2l+1}{2}\displaystyle\int\limits_{-1}^{1}p(\cos\Theta) P_l(\cos\Theta)\mathrm{d}\cos\Theta$ and $P_0(x)=1$, $P_1(x)=x$, $P_0(x)=\dfrac{1}{2}(3x^2-1)$. 
+
+In particular, the first moment of the phase function is called the asymmetry factor $g$ and $\omega_1=3g$, so that the two-term truncation of the phase function is:
+
+\begin{equation}
+\boxed{
+p(\cos\Theta)=1+3g\cos\Theta.
+}
+\end{equation}
+
+Using the addition theorem of spherical harmonics, it can be shown that
+
+\begin{equation}
+P_l(\cos\Theta)=P_l(\mu)P_l(\mu')+2\displaystyle\sum\limits_{m=1}^{l}P_l^m(\mu)P_l^m(\mu')\cos m(\phi-\phi')
+\end{equation}
+
+Since we are interested in irradiance through horizontal surfaces, only the azimuth-integrated quantities are calculated. We define the azimuth-independent phase function 
+
+\begin{equation}
+p(\mu,\mu')=\dfrac{1}{2\pi}\displaystyle\int\limits_{0}^{2\pi}p(\mu,\phi,\mu',\phi')d\phi = \displaystyle\sum\limits_{l=0}^{\infty}\omega_l P_l(\mu)P_l(\mu') \simeq 1+3g\mu\mu'
+\label{azimuth}
+\end{equation}
+
+For sake of simplicity we rewrite $I(\tau,\mu)=\dfrac{1}{2\pi}\displaystyle\int\limits_{0}^{2\pi} I(\tau,\mu,\phi)\mathrm{d}\phi$. The equation for the azimuthally-averaged intensity $I$ is thus:
+
+\begin{equation}
+\boxed{
+\mu\dfrac{dI(\tau,\mu)}{d\tau} =- I(\tau,\mu)+\dfrac{\omega}{2}\displaystyle\int\limits_{-1}^{1}p(\mu,\mu',)I(\tau,\mu') \mathrm{d} \mu'.
+}
+\label{RT_final}
+\end{equation}
+
+\subsection{The $\delta$-Eddington approximation}
+
+To solve Eq.~\ref{RT_final}, an assumption is made on the phase function. To take into account the strong forward scattering of snow particles, the phase function is written as the sum of a strictly forward scattering component and a two-term expansion of a phase function \citep{joseph_delta-eddington_1976}.
+
+\begin{equation}
+p(\cos\Theta) \simeq p_\delta(\cos\Theta)=f\delta(1-\cos\Theta)+(1-f)(1+3g^*\cos\Theta),
+\end{equation}
+where $\delta(1-\cos\Theta)=4\pi\delta(\mu-\mu')\delta(\phi-\phi')$.
+$p_\delta$ should have the same first and second moments as $p$, so that $g=f+(1-f)g^*$ and $f=g^2$ (there it is assumed that the phase function can be approximated by the Henyey-Greenstein phase function with second moment $g^2$). Eventually,
+
+\begin{equation}
+g^*=\dfrac{g}{1+g} \quad \textrm{and} \quad f=g^2
+\end{equation}
+
+\noindent From Eq.~\ref{azimuth} we can write:
+
+\begin{equation}
+p_\delta(\mu,\mu') =2g^2\delta(\mu-\mu')+(1-g^2)(1+3g^*\mu\mu') 
+\label{delta_eddington}
+\end{equation}
+
+\noindent Combining Eqs.~\ref{RT_final} and \ref{delta_eddington} we obtain:
+
+\begin{equation}
+\mu\dfrac{dI(\tau,\mu)}{d\tau}=- I(\tau,\mu)+\omega g^2 I(\tau,\mu)+\dfrac{\omega(1-g^2)}{2}\displaystyle\int\limits_{-1}^{1}p(\mu,\mu',)(1+3g^*\mu\mu') \mathrm{d} \mu' 
+\end{equation}
+
+\noindent Using the variable change:
+
+\begin{align}
+\tau^* & =\tau(1-\omega g^2) \\
+\omega^* & =\dfrac{(1-g^2)\omega}{(1-\omega g^2)}, \\
+\end{align}
+leads to the final equation in the new coordinates, which is strictly similar to Eq.~\ref{RT_final}:
+ 
+\begin{equation}
+\boxed{
+\mu\dfrac{dI(\tau^*,\mu)}{d\tau^*} =- I(\tau^*,\mu)+\dfrac{\omega^*}{2}\displaystyle\int\limits_{-1}^{1}(1+3g^*\mu\mu')I(\tau^*,\mu') \mathrm{d} \mu'.
+}
+\label{RT_delta}
+\end{equation} 
+  
+\subsection{Equation for the diffuse intensity}
+
+The intensity $I$ can be written as the sum of a direct intensity $I_{\textrm{dir}}$ (light that has not been scattered) and a diffuse intensity $I_{\textrm{diff}}$:
+
+
+\begin{equation}
+I(\tau^*,\mu)=I_{\textrm{diff}}(\tau^*,\mu)+I_{\textrm{dir}}(\tau^*,\mu).
+\label{I_tot}
+\end{equation}
+
+\noindent Replacing Eq.~\ref{I_tot} in Eq.~\ref{RT_delta} we obtain two equations:
+
+\begin{align}
+\mu\dfrac{dI_{\textrm{dir}}(\tau^*,\mu)}{d\tau^*} & =- I_{\textrm{dir}}(\tau^*,\mu) \\
+\mu\dfrac{dI_{\textrm{diff}}(\tau^*,\mu)}{d\tau^*} & =- I_{\textrm{diff}}(\tau^*,\mu)+\dfrac{\omega^*}{2}\displaystyle\int\limits_{-1}^{1}(1+3g^*\mu\mu')\left(I_{\textrm{diff}}(\tau^*,\mu')+I_{\textrm{dir}}(\tau^*,\mu')\right) \mathrm{d} \mu'.  \label{I_diff}
+\end{align}
+
+\noindent At the surface the direct incident intensity is $F_\odot\delta(\mu-\mu_0,\phi-\phi_0)$. From this we deduce
+
+\begin{equation}
+I_{\textrm{dir}}(\tau^*,\mu)=\dfrac{1}{2\pi}F_\odot\delta(\mu-\mu_0)e^{-\tau^*/\mu_0}.
+\label{I_dir}
+\end{equation}
+
+\noindent Reporting Eq.~\ref{I_dir} in Eq.~\ref{I_diff}, we obtain the radiative transfer equation for the diffuse intensity:
+
+\begin{equation}
+\mu\dfrac{dI_{\textrm{diff}}(\tau^*,\mu)}{d\tau^*} =- I_{\textrm{diff}}(\tau^*,\mu)+\dfrac{\omega^*}{2}\displaystyle\int\limits_{-1}^{1}(1+3g^*\mu\mu')I_{\textrm{diff}}(\tau^*,\mu') \mathrm{d} \mu' + \dfrac{\omega'}{4\pi} (1+3g^*\mu\mu_0) F_\odot e^{-\tau^*/\mu_0}.
+\label{RT4}
+\end{equation}
+
+\noindent From now on $I_{\textrm{diff}}$ will be referred as simply $I$.
+
+  
+\subsection{The two-stream approximation}
+
+In TARTES, we are interested in the vertical downward and upward fluxes  of energy in the snowpack, $F^{-}$ and $F^{+}$. These quantities are defined by
+
+\begin{subequations}
+  \begin{align}
+  	F^-(\tau^*) & =2\pi\displaystyle\int\limits_{0}^{1}I(\tau^*,\mu)\mu d\mu   \\
+    F^+(\tau^*) & =2\pi\displaystyle\int\limits_{0}^{1}I(\tau^*,-\mu)\mu d\mu.
+  \end{align}
+\end{subequations} 
+
+\noindent Hence Eq.~\ref{RT_delta} can be decomposed into two differential equations
+
+\begin{align}
+\dfrac{dF^-(\tau^*)}{d\tau^*} & =-2\pi\displaystyle\int\limits_{0}^{1}I(\tau^*,\mu) \mathrm{d}\mu  + \pi\omega^*  \displaystyle\int\limits_{0}^{1}\displaystyle\int\limits_{-1}^{1}(1+3g^*\mu\mu')I(\tau^*,\mu') \mathrm{d} \mu' \mathrm{d}\mu + \dfrac{\omega^*}{2} \gamma_4 F_\odot e^{-\tau^*/\mu_0}
+\label{F-} \\
+\dfrac{dF^+(\tau^*)}{d\tau^*} & =2\pi\displaystyle\int\limits_{0}^{1}I(\tau^*,-\mu) \mathrm{d}\mu  - \pi\omega^*  \displaystyle\int\limits_{0}^{1}\displaystyle\int\limits_{-1}^{1}(1-3g^*\mu\mu')I(\tau^*,\mu') \mathrm{d} \mu' \mathrm{d}\mu - \dfrac{\omega^*}{2} \gamma_3 F_\odot e^{-\tau^*/\mu_0}
+\label{F+}
+\end{align}  
+
+where
+
+\begin{align}
+\gamma_4 & =\dfrac{1}{4}(2+3g^*\mu_0) \\
+\gamma_3 & =\dfrac{1}{4}(2-3g^*\mu_0)
+\end{align}
+
+The next step is to approximate the intensity by the Eddington approximation: $I(\tau^*,\mu)=I_0(\tau^*)+\mu I_1(\tau^*)$, so that:
+
+\begin{align}
+F^-(\tau^*) & =2\pi\left[\dfrac{I_0(\tau^*)}{2}+\dfrac{I_1(\tau^*)}{3}\right] \\
+F^+(\tau^*) & =2\pi\left[\dfrac{I_0(\tau^*)}{2}-\dfrac{I_1(\tau^*)}{3}\right].
+\end{align}
+
+\noindent This reads
+
+\begin{equation}
+2\pi I(\tau^*,\pm\mu) = \dfrac{1}{2}\left[(2\pm 3\mu)F^-(\tau^*)+(2\mp 3\mu)F^+(\tau^*)\right],
+\label{intensities}
+\end{equation}
+and therefore
+
+\begin{equation}
+2\pi \displaystyle\int\limits_0^1 I(\tau^*,\pm\mu)\mathrm{d}\mu = \dfrac{1}{4}\left[(4\pm 3)F^-(\tau^*)+(4\mp 3)F^+(\tau^*)\right].
+\label{integrals}
+\end{equation}
+
+\noindent Eventually
+
+\begin{equation}
+\pi \omega^*\displaystyle\int\limits_0^1 \displaystyle\int\limits_{-1}^1 (1\pm3g^*\mu\mu')I(\tau^*,\mu')\mathrm{d}\mu'\mathrm{d}\mu = \dfrac{\omega^*}{4}\left[(4\pm 3 g^*)F^-(\tau^*)+(4\mp 3 g^*)F^+(\tau^*)\right].
+\label{integrals}
+\end{equation}
+
+Substituting Eqs.~\ref{intensities} and \ref{integrals} into Eqs.~\ref{F-} and \ref{F+} we obtain:
+
+\begin{align}
+\dfrac{dF^-(\tau^*)}{d\tau^*} & =-\dfrac{1}{4}\left[7F^-(\tau^*)+F^+(\tau^*)\right] + \dfrac{\omega^*}{4}\left[(4 + 3 g^*)F^-(\tau^*)+(4 - 3 g^*)F^+(\tau^*)\right] + \dfrac{\omega^*}{2} \gamma_4 F_\odot e^{-\tau^*/\mu_0}
+\label{2S-} \\
+\dfrac{dF^+(\tau^*)}{d\tau^*} & =\dfrac{1}{4}\left[F^-(\tau^*)+7F^+(\tau^*)\right] - \dfrac{\omega^*}{4}\left[(4 - 3 g^*)F^-(\tau^*)+(4 + 3 g^*)F^+(\tau^*)\right] - \dfrac{\omega^*}{2} \gamma_3 F_\odot e^{-\tau^*/\mu_0},
+\label{2S+}
+\end{align} 
+which can be factorized as:
+\begin{subequations}
+\begin{align}
+\dfrac{dF^-(\tau^*)}{d\tau^*} & = \gamma_2F^+(\tau^*)- \gamma_1 F^-(\tau^*) + \dfrac{\omega^*}{2} \gamma_4 F_\odot e^{-\tau'/\mu_0}
+\label{F-_de} \\
+\dfrac{dF^+(\tau^*)}{d\tau^*} & = \gamma_1F^+(\tau^*)- \gamma_2 F^-(\tau^*) - \dfrac{\omega^*}{2} \gamma_3 F_\odot e^{-\tau'/\mu_0},
+\label{F+_de}
+\end{align} 
+\end{subequations}
+where
+\begin{align}
+\gamma_1 & = \dfrac{1}{4}\left[7-\omega^*(4+3g^*)\right]\\
+\gamma_2 & = -\dfrac{1}{4}\left[1-\omega^*(4-3g^*)\right]
+\end{align}
+
+Finally, Eqs.~\ref{F-_de} and \ref{F+_de} are identical to eqs.~26 and 27 of \cite{jimenez-aquino_two_2005}. They show that this coupled system of differential equations has solutions of the form:
+
+
+\begin{align}
+F^{-}(\tau^*)&=A e^{-k_e^* \tau^*}+B e^{k_e^* \tau^*}+G^{-}e^{-\tau^*/\mu_0} \\
+F^{+}(\tau^*)&=\alpha A e^{-k_e^* \tau^*}+\dfrac{B}{\alpha} e^{k_e \tau^*}+G^{+}e^{-\tau^* /\mu_0},
+\end{align}
+where 
+
+\begin{align}
+k_e^* & =\sqrt{\gamma_1^2-\gamma_2^2} \\
+\alpha & =\dfrac{\gamma_1-k_e^*}{\gamma_2} \\
+G^{-}&=\dfrac{\mu_0^2 \omega^* F_\odot}{(k_e^* \mu_0)^2-1}\left[(\gamma_1+1/\mu_0)\gamma_4 +\gamma_2 \gamma_3\right] \\
+G^{+}&=\dfrac{\mu_0^2 \omega^* F_\odot}{(k_e^* \mu_0)^2-1}\left[(\gamma_1-1/\mu_0)\gamma_3 +\gamma_2 \gamma_4\right].
+\end{align}
+
+These are the solutions for the diffuse fluxes in a layer. To get the total downward flux, the contribution of the direct incident flux must be considered, that is the solutions for the total fluxes are:
+
+\begin{subequations}
+\begin{align}
+F^{-}_{\textrm{tot}}(\tau^*)&=A e^{-k_e^* \tau^*}+B e^{k_e^* \tau^*}+ (G^{-} + \mu_0 F_\odot)e^{-\tau^*/\mu_0} \label{single1}\\
+F^{+}_{\textrm{tot}}(\tau^*)&=\alpha A e^{-k_e^* \tau^*}+\dfrac{B}{\alpha} e^{k_e \tau^*}+G^{+}e^{-\tau^* /\mu_0}.
+\label{single2}
+\end{align}
+\label{flux_up_d}
+\end{subequations}
+
+
+\subsection{A multilayer snowpack}
+
+Within each layer of the snowpack the fluxes have the form given by Eqs.~\ref{flux_up_d}. To determine the fluxes, we search for the parameters $A$ and $B$ for each layer. For a snowpack with $N$ layers, we have thus $2N$ unknowns denoted ($A_1,B_1,...,A_i,B_i,...,A_N,B_N$). These unknowns are deduced from the continuity and boundary conditions. The former state that the fluxes be continuous at each interface $\tau_i^*$ between two layers. This leads to $2(N-1)$ conditions:
+
+\begin{align}
+A_i e^{-k_{e,i}^* \tau_i^*} + B_i e^{k_{e,i}^* \tau_i^*} + G_i^{-}e^{-\tau_i^*/\mu_0} & =A_{i+1} e^{-k_{e,i+1}^* \tau_i^*} + B_{i+1} e^{k_{e,i+1}^* \tau_i^*} + G_{i+1}^{-} e^{-\tau_i^*/\mu_0}\\
+\alpha_i A_i e^{-k_{e,i}^* \tau_i^*} + \dfrac{B_i}{\alpha_i} e^{k_{e,i}^* \tau_i^*} + G_i^{+}e^{-\tau_i^* /\mu_0} &=\alpha_{i+1} A_{i+1} e^{-k_{e,i+1}^* \tau_i^*} + \dfrac{B_{i+1}}{\alpha_{i+1}} e^{k_{e,i+1}^* \tau_i^*} + G_{i+1}^{+}e^{-\tau_{i}^* /\mu_0}.
+\end{align}
+
+The last two equations are given by the boundary conditions at the top of the snowpack and at the bottom, where the soil albedo $\alpha_b$ is known:
+
+\begin{align}
+A_1 + B_1 + G_{1}^{-} &= 0 \\
+\alpha_N A_N e^{-k_{e,N}^* \tau_N^*} + \dfrac{B_N}{\alpha_N} e^{k_{e,N}^* \tau_N^*} + G_{N}^{+}e^{-\tau_{N}^* /\mu_0} &=\alpha_{b} \left(A_{N} e^{-k_{e,N}^* \tau_N^*} + B_{N} e^{k_{e,N}^* \tau_N^*}  + (G_{N}^{-}+\mu_0 F_\odot)e^{-\tau_{N}^* /\mu_0}\right).
+\end{align}
+
+These equations form a linear system of $2N$ independent equations:
+\begin{equation}
+M*X=V,
+\end{equation}
+where $X={}^t(A_1,B_1,...,A_i,B_i,...,A_N,B_N)$. To avoid extreme values in the matrix we incorporate the exponential terms in the vector $X$, so that we eventually have:
+
+\begin{equation}
+X={}^t(A_1,B_1,...,A_ie^{-k_{i}^*\tau_{i-1}^*},B_i e^{k_{i}^*\tau_{i-1}^*},...,A_N e^{-k_{N}^*\tau_{N-1}^*},B_{N}e^{k_{N}^*\tau_{N-1}^*}).
+\end{equation}
+
+For sake of simplicity, we used $k_i^*=k_{e,i}^*$ and X is now rewritten as follows:
+
+\begin{equation}
+X={}^t(A_1',B_1',...,A_i',B_i',...,A_N',B_{N}'),
+\end{equation}
+
+\noindent Thus the matrix $M$ reads:
+
+\begin{small}
+\begin{equation*}
+\begin{pmatrix} 
+1 & 1 & 0 & 0 & 0 & 0 & 0 & .. & 0\\ 
+e^{-k_1^* d\tau_1^*} & e^{k_1^* d\tau_1^*} & -1 & -1 & 0 &  0 & 0 & .. & 0\\ 
+\alpha_1 e^{-k_1^* d\tau_1^*} & \dfrac{1}{\alpha_1}e^{k_1^* d\tau_1^*} & -\alpha_2  & -1/\alpha_2 & 0 & 0 & 0 & .. & 0 \\ 
+0 & 0 & e^{-k_2^* d\tau_2^*} & e^{k_2^* d\tau_2^*} & -1 & -1 &  0 & .. & 0 \\  
+0 & 0 & \alpha_2 e^{-k_2^* d\tau_2^*} & \dfrac{1}{\alpha_2}e^{k_2^* d\tau_2^*} & -\alpha_3 & -1/\alpha_3 & 0 & .. & 0  \\  
+.. & .. & .. & .. &  .. & .. & .. & .. & .. \\
+.. & .. & .. & .. &  .. & .. & .. & .. & .. \\
+0 & 0 & 0 & 0 &  0 & 0 & .. & (\alpha_N-\alpha_b) e^{-k_N^* d\tau_N^*} & (1/\alpha_N-\alpha_b) e^{k_N^* d\tau_N^*}  
+\end{pmatrix},
+\end{equation*}
+\end{small}
+and 
+\begin{equation}
+V={}^t(-G_1^{-},..,(G_{i+1}^{-}-G_{i}^{-})e^{-\tau_{i}^*/\mu_0},(G_{i+1}^{+}-G_{i}^{+})e^{-\tau_{i}^*/\mu_0},...,\left[\alpha_b(G_N^{-}+\mu_0 F_\odot)-G_{N}^{+}\right]e^{-\tau_{N}^*/\mu_0}).
+\end{equation}
+
+The matrix $M$ can be tridiagonalized doing consecutively the following operations for \mbox{$0<i<N$} and even:
+\begin{enumerate}
+\item $L_i \rightarrow L_i-\alpha_{i/2+1} L_{i+1}$
+\item $L_{i+1} \rightarrow (1-\alpha_{i/2}\alpha_{i/2+1})L_{i+1}-\alpha_{i/2}L_i$.
+\end{enumerate}
+
+The new matrix $M$ is:
+
+\begin{tiny}
+\begin{equation*}
+\begin{pmatrix} 
+1 & 1 & 0 & 0 & 0 & 0 &  .. & 0 & 0\\ 
+(1-\alpha_1 \alpha_2)e^{-k_1^* d\tau_1^*} & (1-\dfrac{\alpha_2}{\alpha_1})e^{k_1^* d\tau_1^*} & (\alpha_2^2 -1) & 0 & 0 &  0 & ..  & 0 & 0\\ 
+0 & (\dfrac{1}{\alpha_1}-\alpha_1)e^{k_1^* d\tau_1^*} & (\alpha_1-\alpha_2) & (\alpha_1-\dfrac{1}{\alpha_2}) & 0 & 0 & .. & 0 & 0\\ 
+0 & 0 & (1-\alpha_2 \alpha_3)e^{-k_2^* d\tau_2^*} & (1-\dfrac{\alpha_3}{\alpha_2})e^{k_2^* d\tau_2^*} & (\alpha_3^2 -1)  & 0 & .. & 0 & 0\\ 
+0 & 0 & 0 & (\dfrac{1}{\alpha_2}-\alpha_2)e^{k_2^* d\tau_2^*} & (\alpha_2-\alpha_3) & (\alpha_2-\dfrac{1}{\alpha_3}) & .. & 0 & 0\\ 
+.. & .. & .. & .. &  .. & .. & .. & .. & .. \\
+.. & .. & .. & .. &  .. & .. & .. & .. & .. \\
+0 & 0 & 0 & 0 &  0 & 0 & .. & (\alpha_N-\alpha_b) e^{-k_N^* d\tau_N^*} & (1/\alpha_N-\alpha_b) e^{k_N^* d\tau_N^*}  
+\end{pmatrix}
+\end{equation*}
+\end{tiny}
+
+and the new vector $V$ is:
+
+\begin{equation}
+V={}^t(-G_1^{-},..,(dG_i^{-}-\alpha_{i+1}dG_{i}^{+})e^{-\tau_{i}^*/\mu_0},(dG_i^{+}-\alpha_{i}dG_{i}^{-})e^{-\tau_{i}^*/\mu_0},...,\left[\alpha_b(G_N^{-}+\mu_0 F_\odot)-G_{N}^{+}\right]e^{-\tau_{N}^*/\mu_0})
+\end{equation}
+
+For the equations above, we have used the following notations:
+\begin{align}
+d\tau_i & = \tau_i - \tau_{i-1} \qquad \textrm{is the optical depth of layer $i$}\\
+dG_i^{\pm} & =G_{i+1}^{\pm}-G_{i}^{\pm}
+\end{align}
+
+Summarized formally, we have the following expressions for $M$ and $V$:
+
+\begin{align*}
+&M_{1,1}=M_{1,2}=1 \\
+&M_{i,i-1}=(1-\alpha_{i/2} \alpha_{i/2+1})e^{-k_{i/2}^* d\tau_{i/2}^*};\quad M_{i,i}=(1-\dfrac{\alpha_{i/2+1}}{\alpha_{i/2}})e^{k_{i/2}^* d\tau_{i/2}^*};\quad M_{i,i+1}=(\alpha_{i/2+1}^2 -1); \quad \textrm{for $i$ even} \\
+&M_{i,i-1}=(\dfrac{1}{\alpha_{(i-1)/2}}-\alpha_{(i-1)/2}) e^{k_{(i-1)/2}^* d\tau_{(i-1)/2}^*};\quad M_{i,i}=(\alpha_{(i-1)/2}-\alpha_{(i+1)/2})e^{-k_{(i+1)/2}^* d\tau_{(i+1)/2}^*}; \\
+& M_{i,i+1}=(\alpha_{(i-1)/2}-\dfrac{1}{\alpha_{(i+1)/2}})e^{k_{q+1} \tau_q};  \quad \textrm{for $i$ odd} \\
+&M_{2N,2N-1}=(\alpha_N-\alpha_b) e^{-k_N \tau_N} ; \quad M_{2N,2N}=(\dfrac{1}{\alpha_N}-\alpha_b) e^{k_N \tau_N}
+\end{align*}
+and
+\begin{align*}
+& V_0 =-G^-_1 \\
+& V_i= (dG_{i/2}^{-}-\alpha_{i/2+1}dG_{i/2}^{+})e^{-\tau_{i/2}^*/\mu_0} \qquad \qquad \qquad \quad \textrm{for $i$ even} \\
+& V_i=(dG_{(i-1)/2}^{+}-\alpha_{(i-1)/2}dG_{(i-1)/2}^{-})e^{-\tau_{(i-1)/2}^*/\mu_0} \quad \quad \textrm{for $i$ odd} \\
+& V_{2N}=\left[\alpha_b(G_N^{-}+\mu_0 F_\odot)-G_{N}^{+}\right]e^{-\tau_{N}^*/\mu_0},
+\end{align*}
+where $q$ is the quotient in the division algorithm of $i$ by $2$.
+
+\
+
+The $2N$ unknowns can be retrieved by inversion of the system $M*X=V$. Then the fluxes at each interface can be calculated:
+
+\begin{align}
+F^{-}_{\textrm{tot}}(\tau_i^*) & =A_i'e^{-k_i^*d\tau_{i}^*}+B_i'e^{k_i^*d\tau_{i}^*} + (G_i^{-} + \mu_0 F_\odot)e^{-\tau^*_i/\mu_0} \\
+F^{+}_{\textrm{tot}}(\tau^*_i) & =\alpha_i A_i' e^{k_i^* d\tau^*_{i}}+\dfrac{B_i'}{\alpha} e^{k_i^* d\tau^*_{i}}+G_i^{+}e^{-\tau^*_i /\mu_0},
+\end{align}
+where the terms in parenthesis are the components of the solution vector $X$. From these expressions the energy absorbed by layer $i>1$ can be calculated:
+
+\begin{align}
+E_i & =\underbrace{F^{+}_{\textrm{tot}}(\tau_{i}^*)-F^{+}_{\textrm{tot}}(\tau_{i-1}^*)}_{E_u}-\underbrace{\left(F^{-}_{\textrm{tot}}(\tau_{i}^*)-F^{-}_{\textrm{tot}}(\tau_{i-1}^*)\right)}_{E_d} \\
+E_u & = \alpha_iA_i' (e^{-k_i^*d\tau_{i}^*}-1)+ \dfrac{B_i'}{\alpha_i}(e^{k_i^*d\tau_{i}^*}-1) + G_i^{+}(e^{-\tau^*_i/\mu_0}-e^{-\tau^*_{i-1}/\mu_0})\\
+E_d & = A_i' (e^{-k_i^*d\tau_{i}^*}-1)+ B_i'(e^{k_i^*d\tau_{i}^*}-1) + (G_i^{-} + \mu_0 F_\odot)(e^{-\tau^*_i/\mu_0}-e^{-\tau^*_{i-1}/\mu_0}).
+\end{align}
+
+For the first layer,
+
+\begin{equation}
+E_1=A_1(\alpha_1-1)(e^{-k_1^*\tau_{1}^*}-1)+B_1(1/\alpha_1-1)(e^{k_1^*\tau_{1}^*}-1)+(G_1^+-G_1^- - \mu_0 F_\odot)(e^{\tau_{1}^*/\mu_0}-1). 
+\end{equation}
+
+The energy absorbed by the soil is given by:
+
+\begin{equation}
+E_{\textrm{soil}}=(1-\alpha_b)(A_N'e^{-k_N^*d\tau_{N}^*}+B_N'e^{k_N^*d\tau_{N}^*} + (G_N^{-} + \mu_0 F_\odot)e^{-\tau^*_N/\mu_0})
+\end{equation}
+
+The spectral albedo is also calculated:
+
+\begin{equation}
+\alpha=\dfrac{1}{\mu_0 F_0}\left(\alpha_1 A_1+\dfrac{B_1}{\alpha_1}+G^+_1\right)
+\end{equation}
+
+\subsection{Diffuse incident radiation}
+
+To be accurate, in the case of diffuse incident radiation, the optical properties should be calculated by integrating the solution for direct incident light, at all angles. Since it is too computationally demanding, any diffuse flux is replaced by a direct flux at $53^\circ$. Only the vector $V$ depends on incident light caracteristics, the matrix $M$ depends only on snow physical properties. For instance, to compute the optical properties of a snowpack at various angles of incidence, $M$ has to be calculated only once.
+
+\subsection{Spectral integration}
+Since the single scattering properties of the snowpack are wavelength-dependent, the matrix $M$ as well as the vector $V$ are calculated at each wavelength of the incident light. Broadband quantities are thus obtained by summing the contribution of all wavelengths. The broadband albedo $\overline{\alpha}$ is obtained through spectral integration:
+
+\begin{equation}
+\overline{\alpha}=\dfrac{\displaystyle\sum\limits_{1}^{N}\alpha(\lambda_i)F_\odot(\lambda_i)}{\displaystyle\sum\limits_{1}^{N}F_\odot(\lambda_i)}
+\end{equation}
+
+\subsection{Handling of a deep snowpack}
+\subsubsection{Numerical handling of thick layers}
+When a layer is to thick, the terms $e^{\pm k_i^*d\tau_i^*}$ become extremely large or small and cannot be handled numerically. To avoid this, when a layer is too thick (practically when $k_i^*d\tau_i>200$), its optical depth is modified so that $k_i^*d\tau_i=200$.
+
+\subsubsection{Effective snowpack}
+When a snowpack is deep, energy does not penetrate through the whole snowpack, it is essentially absorbed in the topmost layers. To save computation time, the snowpack used for the calculations is reduced to the top $n$ layers, where $n$ is such that:
+
+\begin{equation}
+\displaystyle\sum\limits_{1}^{n-1}k_i^*d\tau_i<30 \quad \textrm{and} \quad \displaystyle\sum\limits_{1}^{n}k_i^*d\tau_i>30.
+\end{equation}
+At the same time, the optical thickness of the last layer is set to $30/k_i^*$ and the underlying albedo is set to $1$ so that the soil does not absorb energy.
+
+\section{Single scattering properties of snow}
+
+The radiative transfer equation in snow can now be solved, but the single scattering properties of snow, $\omega$ and $g$, still need to be determined from the physical properties of each layer. These properties include SSA, density, grain shape and impurity contents. In TARTES it is assumed that all the snow grains in a layer are identical. 
+
+\subsection{Specific Surface Area (SSA)}
+Snow SSA is defined as the ratio of the total contact surface between ice and air, to the total mass of snow: $\textrm{SSA}=\dfrac{S}{\rho_\textrm{ice}V}$. We assume here that snow is composed of a collection of identical convex grains, so that the definition holds for a single grain.
+
+\subsection{From a particulate to a continuous medium}
+
+The radiative transfer theory presented in previous sections should be applied to a continuous medium. Here, the extinction and absorption coefficients of snow are related to the extinction and absorption cross sections of snow particles \citep{kokhanovsky_light_2004}:
+
+\begin{align}
+\sigma_e & =nC_{\textrm{ext}} \\
+\sigma_a & =nC_{\textrm{abs}},
+\end{align}
+where $n$ is the particle concentration (m$^{-3}$). The assymetry factor of snow is simply the asymmetry factor of the single particles.
+
+\subsection{The asymmetry factor $g$}
+
+$g$ corresponds to the average cosine of the angle of deviation of scattering by snow grains. It depends essentially on snow grain shape $s$ at weakly absorbing wavelengths but at absorbing wavelengths depends also on the ice refractive index $m=n-i\chi$ and SSA.
+
+\cite{kokhanovsky_light_2004} show that:
+
+\begin{equation}
+g(n,s)=g_{\infty}(n)-(g_{\infty}(n)-g_{0}(n,s))*e^{-y(n,s) c},
+\end{equation}
+where $c=\dfrac{24\pi\chi}{\lambda\rho_{\textrm{ice}}\textrm{SSA}}$. 
+
+$g_{\infty}(n)$ is the asymmetry factor of a purely absorbing sphere and $g_{0}(n,s)$ is the asymmetry factor of a non absorbing particle of shape $s$. We provide here the values valid for spheres (the linear dependence on $n$ comes from a linear regression of data from \cite{kokhanovsky_light_2004}): 
+
+\begin{align}
+g_{\infty}(n) & =0.9751-0.105(n-1.3) \\
+g_{0}(n) & =0.8961-0.38(n-1.3) \\
+y(n) & = 0.728 + 0.752(n-1.3)
+\end{align}
+
+
+\subsection{The optical depth $\tau$}
+
+By definition the optical depth of a layer is defined as $\tau=\sigma_e z$, where $z$ is its geometrical depth. For convex particles it can be shown that:
+\begin{align}
+\sigma_e=\dfrac{\rho \textrm{SSA}}{2}
+\end{align}
+
+\subsection{The single scattering albedo $\omega$}
+
+According to \cite{kokhanovsky_light_2004}:
+
+\begin{equation}
+(1-\omega)=\dfrac{1}{2}(1-W(n))(1-e^{-\psi(n,s) c})
+\end{equation}
+
+$W(n)$ is given by the equations below and $\psi(n,s)$ depends on the shape parameter $B(n,s)$:
+
+\begin{itemize}
+\item $W(n)=W1\ln(n)+W2\ln\left(\dfrac{n-1}{n+1}\right)+W3$
+\begin{itemize}
+\item $W1=\dfrac{8n^4(n^4+1)}{(n^4-1)^2(n^2+1)}$ ;  $W2=\dfrac{n^2(n^2-1)^2)}{(n^2+1)^3}$ 
+\item $W3=\dfrac{\displaystyle\sum_{j=0}^{7}A_jn^j}{3(n^4-1)(n^4+1)(n+1)}$ ; $A_j=(-1,-1,-3,7,-9,-13,-7,3)$
+\end{itemize}
+\item $\psi(n,s)=\dfrac{2}{3}\dfrac{B(n,s)}{1-W(n)}$
+\end{itemize}
+
+\noindent Here, $W(n)$ is approximated by:
+
+\begin{equation}
+W(n)=0.0611+0.17*(n-1.3) 
+\end{equation}
+
+\noindent For spherical particles,
+\begin{equation}
+B(n) =1.22+0.4(n-1.3).
+\end{equation}
+
+\subsection{Impurities}
+
+In TARTES, it is assumed that impurities are external to snow grains, that is the external mixture hypothesis is made. When impurities are added in low quantities, we assume that the extinction cross section $C_{\textrm{ext}}$ of snow is unchanged but the absorption cross section $C_{\textrm{abs}}$ of impurities has to be considered. We also assume that impurities are small compared to the wavelength, and spherical. In that case the absorption cross section of impurity of type $i$ (of refractive index $m_i$) is given by \citep{kokhanovsky_light_2004}:
+
+\begin{equation}
+C_{\textrm{a}}^{i}(\lambda)=-\dfrac{6\pi V}{\lambda}\textrm{Im}\left(\dfrac{m_i^2-1}{m_i^2+1}\right).
+\end{equation}
+
+Since $(1-\omega)=(1-\omega)_{\textrm{snow}}+\dfrac{1}{\sigma_e}\displaystyle\sum\limits n_iC_{\textrm{a}}^{i}$, the total single scattering albedo is the sum of the contributions of pure snow and impurities:
+
+\begin{equation}
+(1-\omega)=\dfrac{1}{2}(1-W(n))(1-e^{-\psi(n,s) c})-\dfrac{12\pi}{\lambda\textrm{SSA}}\displaystyle\sum_{\textrm{imp}}\dfrac{c_{i}}{\rho_i}\textrm{Im}\left(\dfrac{m_i^2-1}{m_i^2+1}\right)
+\end{equation}
+
+In particular, the characteristics of black carbon (BC) are taken from \cite{bond_light_2006}: $\rho_{\textrm{BC}}=1800$ kg m$^{-3}$ and $m_{\textrm{BC}}=1.95-0.79i$.
+
+
+
+\begin{thebibliography}{5}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{{\tt #1}}
+\providecommand{\urlprefix}{URL }
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  \urlstyle{rm}\Url}\fi
+
+\bibitem[{Bond and Bergstrom(2006)}]{bond_light_2006}
+Bond, T.~C. and Bergstrom, R.~W.: Light Absorption by Carbonaceous Particles:
+  An Investigative Review, Aerosol Science and Technology, 40, 27--67,
+  \doi{10.1080/02786820500421521}, 2006.
+
+\bibitem[{Chandrasekhar(1960)}]{chandrasekhar_radiative_1960}
+Chandrasekhar, S.: Radiative Transfer, Courier Dover Publications, 1960.
+
+\bibitem[{Jim{\'e}nez-Aquino and Varela(2005)}]{jimenez-aquino_two_2005}
+Jim{\'e}nez-Aquino, J.~I. and Varela, J.~R.: Two stream approximation to
+  radiative transfer equation: An alternative method of solution, Revista
+  Mexicana de Fisica, 51, 82--86, 2005.
+
+\bibitem[{Joseph et~al.(1976)Joseph, Wiscombe, and
+  Weinman}]{joseph_delta-eddington_1976}
+Joseph, J.~H., Wiscombe, W.~J., and Weinman, J.~A.: The Delta-Eddington
+  Approximation for Radiative Flux Transfer, Journal of the Atmospheric
+  Sciences, 33, 2452--2459,
+  \doi{10.1175/1520-0469(1976)033<2452:TDEAFR>2.0.CO;2}, 1976.
+
+\bibitem[{Kokhanovsky(2004)}]{kokhanovsky_light_2004}
+Kokhanovsky, A.~A.: Light Scattering Media Optics: Problems and Solutions,
+  Springer, 2004.
+
+\end{thebibliography}
+
+\end{document}
