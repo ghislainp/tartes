@@ -8,7 +8,8 @@ before_install:
   - pip install -U pip
   - pip install -U pytest
 install:
-  - pip install -r requirements.txt # install package + test dependencies
+  - pip install -r requirements.txt # install package
+  - pip install .
 script: pytest # run tests
 after_success:
   - codecov # submit coverage
