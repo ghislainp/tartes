@@ -114,22 +114,3 @@ ki2016_clean_i = np.array([3.294254536192534055e-02,3.076769476468334957e-02,3.0
     7.508639336855899016e-02,8.106493224269085973e-02,8.729770962108315824e-02,
     9.401733067082994333e-02,1.007896720807269081e-01,1.083179776540570127e-01,
     1.166354851163920320e-01,1.260482198488585281e-01,1.359718887014898236e-01])
-
-
-if __name__ == '__main__':
-
-    import sys
-    import matplotlib.pyplot as plt
-
-    # print refice imaginary part
-    np.savetxt(sys.stdout.buffer, np.transpose((wls2016, refice2016(wls2016*1e-9)[1])))
-
-    # plot refice imaginary part
-    wls = np.arange(300., 800., 10)
-    plt.semilogy(wls, refice1995(wls*1e-9)[1], label="refice1995")
-    plt.semilogy(wls, refice2008(wls*1e-9)[1], label="refice2008")
-    plt.semilogy(wls, refice2016(wls*1e-9)[1], label="refice2016")
-    plt.legend(loc='best')
-    plt.show()
-
-    
