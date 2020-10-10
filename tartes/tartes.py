@@ -46,7 +46,7 @@ default_g0 = 0.86
 # b = 4/3*sqrt(B0/(1-g0))
 
 
-def albedo(wavelength, SSA, density=None, thickness=None, 
+def albedo(wavelength, SSA, density=None, thickness=None,
            g0=default_g0, B0=default_B0, y0=0.728, W0=0.0611,
            impurities=0.0, impurities_type=Soot, refrac_index="p2016",
            soilalbedo=0.0, dir_frac=0.0, sza=0.0):
@@ -208,7 +208,7 @@ def actinic_profile(wavelength, z, SSA, density, thickness=None,
                     g0=default_g0, B0=default_B0, y0=0.728, W0=0.0611,
                     impurities=0, impurities_type=Soot,
                     soilalbedo=0.0, dir_frac=0, totflux=1.0, sza=0,
-                    refrac_index=None):
+                    refrac_index="p2016"):
     """compute the actinic flux at every depth z. The parameters are the same as for the irradiance profile.
 
 :param wavelength: wavelength (m)
@@ -994,9 +994,9 @@ def tartes(wavelength, SSA, density, thickness=None,
             energyprofile[i, -1] = dirrad_i * soil_absorption(solutions_dir, kestar_i,
                                                               dtaustar_i, taustar_i,
                                                               Gmdir_i, mudir, soilalbedo_i) + \
-                                   diffrad_i * soil_absorption(solutions_diff, kestar_i,
-                                                               dtaustar_i, taustar_i,
-                                                               Gmdiff_i, mudiff, soilalbedo_i)
+                diffrad_i * soil_absorption(solutions_diff, kestar_i,
+                                            dtaustar_i, taustar_i,
+                                            Gmdiff_i, mudiff, soilalbedo_i)
 
         if compute_irradiance_profiles or compute_actinic_profile:
             # compute the profile of downward intensity

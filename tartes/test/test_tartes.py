@@ -1,5 +1,5 @@
 
-from tartes import albedo
+from tartes import albedo, actinic_profile
 import numpy as np
 
 
