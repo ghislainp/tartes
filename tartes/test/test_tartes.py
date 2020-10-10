@@ -64,7 +64,7 @@ def test_diffus():
     assert np.all(abs(alb_dir53 - alb_diff) < 1e-8)
 
     alb_halfdir53 = albedo(wavelength, ssa, density, thickness, sza=53, dir_frac=0.5)
-    
+
     assert np.all(abs(alb_halfdir53 - alb_diff) < 1e-8)
 
 
@@ -73,7 +73,21 @@ def test_impurities():
     wavelength = [450e-9, 650e-9, 850e-9, 1030e-9, 1300e-9]  # in m
 
     alb = albedo(wavelength, ssa, impurities=100e-9)
-    
+
     print(alb)
     res = np.array([0.95566775, 0.94667078, 0.87767193, 0.66526393, 0.42814038])
-    assert np.all(abs(alb - res) < 1e-8)
+    assert np.allclose(alb, res, atol=1e-8)
+
+
+def test_flux_actinic():
+
+    ssa = 20
+    density = 300.
+    wavelength = 450e-9
+
+    z = [0.1, 0.2]
+
+    act = actinic_profile(wavelength, z, ssa, density, dir_frac=1, sza=30)
+
+    print(act)
+    assert np.allclose(act, [3.21803673, 2.26422331], atol=1e-8)

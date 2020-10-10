@@ -1038,11 +1038,13 @@ def tartes(wavelength, SSA, density, thickness=None,
                     if dirrad_i > 0 and mudir > 0:
                         actinic_profile[i, nz0] = dirrad_i * (2 * (A_dir[m - 1] + C_dir[m - 1]) * expm +
                                                               2 * (B_dir[m - 1] + D_dir[m - 1]) * expp +
-                                                              (Gmdir_i[m - 1] + mudir) * np.exp(-taustar_z / mudir))
+                                                              (2 * Gmdir_i[m - 1] + 2 * Gpdir_i[m - 1] + 1)
+                                                              * np.exp(-taustar_z / mudir))
                     if diffrad_i > 0 and mudiff > 0:
-                        actinic_profile[i, nz0] += diffrad_i * (2 * (A_diff[m - 1] + C_diff[m - 1]) * expm +
-                                                                2 * (B_diff[m - 1] + D_diff[m - 1]) * expp +
-                                                                (Gmdiff_i[m - 1] + mudiff) * np.exp(-taustar_z / mudiff))
+                        actinic_profile[i, nz0] += 2 * diffrad_i * ((A_diff[m - 1] + C_diff[m - 1]) * expm +
+                                                                    (B_diff[m - 1] + D_diff[m - 1]) * expp +
+                                                                    (Gmdiff_i[m - 1] + Gpdiff_i[m - 1] + 1)
+                                                                    * np.exp(-taustar_z / mudiff))
 
     if not compute_absorption and not compute_irradiance_profiles and not compute_actinic_profile:
         if return_dir_diff:
