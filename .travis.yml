@@ -11,6 +11,6 @@ install:
   - pip install -r requirements.txt # install package
   - pip install .
 script: pytest # run tests
-after_success:
-  - codecov # submit coverage
+#after_success:
+#  - codecov # submit coverage
 

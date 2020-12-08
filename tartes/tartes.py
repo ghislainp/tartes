@@ -42,12 +42,15 @@ default_B0 = 1.6  # Based on Libois et al. 2014
 # deduce for the b value derived from Gallet et al. 2009 SSA versus albedo measurements.
 default_g0 = 0.86
 
+default_y0 = 0.728
+default_W0 = 0.0611
+
 # B0 and g0 are related to b factor in Kokhanosky and Zege 2004 or Picard et al. 2009 by:
 # b = 4/3*sqrt(B0/(1-g0))
 
 
 def albedo(wavelength, SSA, density=None, thickness=None,
-           g0=default_g0, B0=default_B0, y0=0.728, W0=0.0611,
+           g0=default_g0, B0=default_B0, y0=default_y0, W0=default_W0,
            impurities=0.0, impurities_type=Soot, refrac_index="p2016",
            soilalbedo=0.0, dir_frac=0.0, sza=0.0):
     """
@@ -98,7 +101,7 @@ def albedo(wavelength, SSA, density=None, thickness=None,
 
 
 def absorption_profile(wavelength, SSA, density=None, thickness=None,
-                       g0=default_g0, B0=default_B0, y0=0.728, W0=0.0611,
+                       g0=default_g0, B0=default_B0, y0=default_y0, W0=default_W0,
                        impurities=0, impurities_type=Soot,
                        soilalbedo=0.0, dir_frac=0.0, totflux=1.0, sza=0,
                        refrac_index="p2016"):
@@ -150,7 +153,7 @@ compute the energy absorbed in every layer and in the soil. The parameters are t
 
 
 def irradiance_profiles(wavelength, z, SSA, density=None, thickness=None,
-                        g0=default_g0, B0=default_B0, y0=0.728, W0=0.0611,
+                        g0=default_g0, B0=default_B0, y0=default_y0, W0=default_W0,
                         impurities=0, impurities_type=Soot,
                         soilalbedo=0.0, dir_frac=0, totflux=1.0, sza=0,
                         refrac_index="p2016"):
@@ -205,7 +208,7 @@ def irradiance_profiles(wavelength, z, SSA, density=None, thickness=None,
 
 
 def actinic_profile(wavelength, z, SSA, density, thickness=None,
-                    g0=default_g0, B0=default_B0, y0=0.728, W0=0.0611,
+                    g0=default_g0, B0=default_B0, y0=default_y0, W0=default_W0,
                     impurities=0, impurities_type=Soot,
                     soilalbedo=0.0, dir_frac=0, totflux=1.0, sza=0,
                     refrac_index="p2016"):
@@ -346,8 +349,9 @@ def impurities_co_single_scattering_albedo(wavelength, SSA, impurities_content, 
     return cossalb
 
 
-def single_scattering_optical_parameters(wavelength, refrac_index, SSA, rho,
-                                         impurities, impurities_type, g0, y0, W0, B0):
+def single_scattering_optical_parameters(wavelength, refrac_index, SSA,
+                                         impurities_content=None, impurities_type=None,
+                                         g0=default_g0, y0=default_y0, W0=default_W0, B0=default_B0):
     """return single scattering parameters of one layer
     see doc Section 2.3, 2.5, 2.6
 
@@ -357,13 +361,23 @@ def single_scattering_optical_parameters(wavelength, refrac_index, SSA, rho,
     :type refrac_index: array
     :param SSA: snow specific surface area (m^2/kg) of one layer
     :type SSA: scalar
-    :param rho: snow density (kg/m^3) of one layer
-    :type rho: scalar
     :param impurities: impurities is a dictionnary where keys are impurity type ("soot" or "hulis") and values are a 2-element array containing density (kg/m^3) and content (g/g)
     :type impurities: dict
 
     :returns: total single scattering albedo and asymmetry factor
 """
+    if refrac_index == "w2008":
+        # should be cached when the same wavelengths are used
+        refrac_index = refice2008(wavelength)
+    elif refrac_index == "w1995":
+        # should be cached when the same wavelengths are used
+        refrac_index = refice1995(wavelength)
+    elif refrac_index is None or refrac_index == "p2016":
+        # should be cached when the same wavelengths are used
+        refrac_index = refice2016(wavelength)
+    elif callable(refrac_index):
+        # should be cached when the same wavelengths are used
+        refrac_index = refrac_index(wavelength)
 
     n, abs_ice = refrac_index            # determination of ice refractive index
     c = 24 * np.pi * abs_ice / (917. * wavelength) / \
@@ -378,8 +392,7 @@ def single_scattering_optical_parameters(wavelength, refrac_index, SSA, rho,
     cossalb = 0.5 * (1 - W) * (1 - np.exp(- c * phi))
 
     # adding co- single scattering albedo for impureties
-    cossalb += impurities_co_single_scattering_albedo(
-        wavelength, SSA, impurities, impurities_type)
+    cossalb += impurities_co_single_scattering_albedo(wavelength, SSA, impurities_content, impurities_type)
 
     ssalb = 1.0 - cossalb
 
@@ -772,7 +785,7 @@ def soa(x, i):
 
 
 def tartes(wavelength, SSA, density, thickness=None,
-           g0=default_g0, B0=default_B0, y0=0.728, W0=0.0611,
+           g0=default_g0, B0=default_B0, y0=default_y0, W0=default_W0,
            impurities=0, impurities_type=Soot,
            soilalbedo=0.0, dir_frac=0.0, totflux=1.0, mudir=0, return_dir_diff=False,
            compute_absorption=False, compute_irradiance_profiles=False, compute_actinic_profile=False,
@@ -871,23 +884,11 @@ def tartes(wavelength, SSA, density, thickness=None,
     kestar = np.zeros_like(alb)
 
     # 1 compute optical properties for an array of wavelength
-    if refrac_index is None or refrac_index == "w2008":
-        # should be cached when the same wavelengths are used
-        refrac_index = refice2008(wavelength)
-    elif refrac_index == "w1995":
-        # should be cached when the same wavelengths are used
-        refrac_index = refice1995(wavelength)
-    elif refrac_index == "p2016":
-        # should be cached when the same wavelengths are used
-        refrac_index = refice2016(wavelength)
-    elif callable(refrac_index):
-        # should be cached when the same wavelengths are used
-        refrac_index = refrac_index(wavelength)
 
     for n in range(nlyr):
         ssalb[:, n], g[:, n] = single_scattering_optical_parameters(wavelength,
                                                                     refrac_index,
-                                                                    SSA[n], density[n],
+                                                                    SSA[n],
                                                                     soa(impurities, n),
                                                                     impurities_type,
                                                                     soa(g0, n), soa(y0, n), soa(W0, n), soa(B0, n))
