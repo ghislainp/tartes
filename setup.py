@@ -3,6 +3,7 @@ from distutils.core import setup, Command
 
 class PyTest(Command):
     user_options = []
+
     def initialize_options(self):
         pass
 
@@ -17,15 +18,15 @@ class PyTest(Command):
 
 
 setup(
-    name = "tartes",
-    packages = ["tartes"],
-    version = "1.3.3",
-    description = "Two-stream radiative transfer in snow model",
-    author = "Quentin Libois, Ghislain Picard",
-    author_email = "quentin.libois@meteo.fr, ghislain.picard@univ-grenoble-alpes.fr",
-    url = "http://gp.snow-physics.science/tartes/",
-    keywords = ["radiative transfer","model","snow","optics"],
-    classifiers = [
+    name="tartes",
+    packages=["tartes"],
+    version="1.4",
+    description="Two-stream radiative transfer in snow model",
+    author="Quentin Libois, Ghislain Picard",
+    author_email="quentin.libois@meteo.fr, ghislain.picard@univ-grenoble-alpes.fr",
+    url="http://gp.snow-physics.science/tartes/",
+    keywords=["radiative transfer", "model", "snow", "optics"],
+    classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",
@@ -35,9 +36,9 @@ setup(
         "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering :: Atmospheric Science",
-        ],
-    cmdclass = {'test': PyTest},
-    long_description = """\
+    ],
+    cmdclass={'test': PyTest},
+    long_description="""\
 Two-stream radiative transfer in snow model
 -------------------------------------------
 
