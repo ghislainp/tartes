@@ -790,54 +790,61 @@ def tartes(wavelength, SSA, density, thickness=None,
            soilalbedo=0.0, dir_frac=0.0, totflux=1.0, mudir=0, return_dir_diff=False,
            compute_absorption=False, compute_irradiance_profiles=False, compute_actinic_profile=False,
            z=None, refrac_index=None):
-    """compute spectral albedo, and optionally the absorption in each layer and in the soil, the downwelling and upwelling irradiance profiles and the actinic flux from the physical properties of the snowpack and the incidence flux conditions.
+    """compute spectral albedo, and optionally the absorption in each layer and in the soil, the downwelling and upwelling 
+    irradiance profiles and the actinic flux from the physical properties of the snowpack and the incidence flux conditions.
 
-:param wavelength: wavelength (m)
-:type wavelength: array or scalar
-:param SSA: snow specific surface area (m^2/kg)
-:type SSA: array or scalar
-:param density: snow density (kg/m^3)
-:type density: array or scalar
-:param thickness: thickness of the layers (m)
-:type thickness: array or scalar
-:param g0: asymmetry parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The default value is 0.86. g0 can be scalar (constant in the snowpack) or an array like the SSA.
-:type g0: array or scalar
-:param B0: absorption enhancement parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The default value is 1.6, taken from Libois et al. 2014. B0 can be scalar (constant in the snowpack) or an array like the SSA.
-:type B0: array or scalar
-:param y0: Value of y of snow grains at nr=1.3 (no unit).  See Eqs 72 and 75 in the "science" doc for the default value. y0 can be scalar (same for all layers) or an array like the SSA.
-:type y0: array or scalar
-:param W0: Value of W of snow grains at nr=1.3 (no unit). See Eqs 72 and 75 in the "science" doc for the default value. W0 can be a scalar (same for all layers) or an array like the SSA.
-:type W0: array or scalar
-:param impurities: impurities concentration (g/g/) in each layer. It is either a constant or an array with size equal to the number of layers. The array is 1-d if only one type of impurities is used and 2-d otherwise.
-:type impurities: array or scalar
-:param impurities_type: specify the type of impurity. By defaut it is "soot". Otherwise it should be a class (or an instance) defining the density and the imaginary part of the refractive index like the Soot class (see tartes.impurities for possible choices and to add new impurities types). It can also be a list of classes if several impurities type are present in the snowpack. In this case, the impurities parameter must be a 2-d array.
-:type impurities_type: object or list of object
-:param soilalbedo: albedo of the bottom layer (no unit). soilalbedo can be a scalar or an array like wavelength.
-:type soilalbedo: scalar or array
-:param dir_frac: fraction of directional flux over the total flux (the default is dir_frac = 0 meaning 100% diffuse incident flux) at every wavelength
-:type dir_frac: array
-:param totflux: total spectral incident flux (direct+diffuse) (W/m^2)
-:type totflux: array
-:param mudir: cosine of the incident angle of direct light
-:type mudir: scalar
-:param return_dir_diff: if True return the direct and diffuse components of the albedo. In this case, dir_frac and totflux are not used.
-:type return_dir_diff: boolean
-:param compute_absorption: if True compute the absorption profile and the absorption in the soil
-:type compute_absorption: boolean
-:param compute_irradiance_profiles: if True compute the profiles of up- and down-welling irradiance at depths z
-:type compute_actinic_profile: boolean
-:param compute_actinic_profile: if True compute the profile of actinic flux at depths z
-:type compute_irradiance_profiles: boolean
-:param z: depth at which the irradiance is calculed. It is used only if compute_irradiance_profile is activated.
-:type z: array
-:param refrac_index: real and imaginary parts of the refractive index for each wavelength or a string "p2016" for Picard et al. 2016 or w2008 for Warren and Brandt 2008 or w1995 for Warren, 1984 modified as noted on Warren web site.
-:type refrac_index: string or tuple of two arrays
+    :param wavelength: wavelength (m)
+    :type wavelength: array or scalar
+    :param SSA: snow specific surface area (m^2/kg)
+    :type SSA: array or scalar
+    :param density: snow density (kg/m^3)
+    :type density: array or scalar
+    :param thickness: thickness of the layers (m)
+    :type thickness: array or scalar
+    :param g0: asymmetry parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The default value is 0.86. g0 can be scalar (constant in the snowpack) or an array like the SSA.
+    :type g0: array or scalar
+    :param B0: absorption enhancement parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The default value is 1.6, taken from Libois et al. 2014. B0 can be scalar (constant in the snowpack) or an array like the SSA.
+    :type B0: array or scalar
+    :param y0: Value of y of snow grains at nr=1.3 (no unit).  See Eqs 72 and 75 in the "science" doc for the default value. y0 can be scalar (same for all layers) or an array like the SSA.
+    :type y0: array or scalar
+    :param W0: Value of W of snow grains at nr=1.3 (no unit). See Eqs 72 and 75 in the "science" doc for the default value. W0 can be a scalar (same for all layers) or an array like the SSA.
+    :type W0: array or scalar
+    :param impurities: impurities concentration (g/g/) in each layer. It is either a constant or an array with size equal to the number of layers. The array is 1-d if only one type of impurities is used and 2-d otherwise.
+    :type impurities: array or scalar
+    :param impurities_type: specify the type of impurity. By defaut it is "soot". Otherwise it should be a class (or an instance) defining the density and the imaginary part of the refractive index like the Soot class (see tartes.impurities for possible choices and to add new impurities types). It can also be a list of classes if several impurities type are present in the snowpack. In this case, the impurities parameter must be a 2-d array.
+    :type impurities_type: object or list of object
+    :param soilalbedo: albedo of the bottom layer (no unit). soilalbedo can be a scalar or an array like wavelength.
+    :type soilalbedo: scalar or array
+    :param dir_frac: fraction of directional flux over the total flux (the default is dir_frac = 0 meaning 100% diffuse incident flux) at every wavelength
+    :type dir_frac: array
+    :param totflux: total spectral incident flux (direct+diffuse) (W/m^2)
+    :type totflux: array
+    :param mudir: cosine of the incident angle of direct light
+    :type mudir: scalar
+    :param return_dir_diff: if True return the direct and diffuse components of the albedo. In this case, dir_frac and totflux are not used.
+    :type return_dir_diff: boolean
+    :param compute_absorption: if True compute the absorption profile and the absorption in the soil
+    :type compute_absorption: boolean
+    :param compute_irradiance_profiles: if True compute the profiles of up- and down-welling irradiance at depths z
+    :type compute_actinic_profile: boolean
+    :param compute_actinic_profile: if True compute the profile of actinic flux at depths z
+    :type compute_irradiance_profiles: boolean
+    :param z: depth at which the irradiance is calculed. It is used only if compute_irradiance_profile is activated.
+    :type z: array
+    :param refrac_index: real and imaginary parts of the refractive index for each wavelength or a string "p2016" for Picard et al. 2016 
+    or w2008 for Warren and Brandt 2008 or w1995 for Warren, 1984 modified as noted on Warren web site.
+    :type refrac_index: string or tuple of two arrays
 
-:returns: spectral albedo, and optionaly absorption by layer (note the bottom layer correspond to the absorption by the soil) and optionnaly the profile of irradiance: downwelling, upwelling
+    :returns: spectral albedo, and optionaly absorption by layer (note the bottom layer correspond to the absorption by the soil) 
+    and optionnaly the profile of irradiance: downwelling, upwelling
 """
 
-    # the diffuse incident flux is treated as direct flux at incident angle 53°
-    mudiff = np.cos(np.deg2rad(53.))
+    # the diffuse incident flux is treated as a direct flux at an effective incident angle.
+    # The value of 53° was used, based on tests with DISORT (Libois 2013).
+    # However, from  22 June 2022, it was decided to use a value consistent with the ART theory
+    # that is 48° which corresponds to 3/7*(1+2*cos(theta)) = 1.
+
+    mudiff = np.cos(np.deg2rad(48.))
 
     # convert SSA, density and thickness to array if necessary
     SSA = np.atleast_1d(SSA)
@@ -1033,6 +1040,10 @@ def tartes(wavelength, SSA, density, thickness=None,
                                                                Gpdiff_i[m - 1] * np.exp(-taustar_z / mudiff))
 
                 if compute_actinic_profile:
+
+                    # the factor 2 in the following equations converts the radiation flux into actinic flux.
+                    # diffuse radiation are given a factor of 2 while the direct radiation (only one term actually) has a factor of 1.
+                    # this is consistent with the two-stream approximation as used in TARTES.
 
                     actinic_profile[i, nz0] = 0
 
