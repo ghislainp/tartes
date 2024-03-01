@@ -26,21 +26,21 @@ import numpy as np
 import math
 
 
-class Soot(object):
+class Impurities(object):
+    pass
+
+
+class SootBond06(Impurities):
     """class defining soot"""
 
     density = 1800.0
 
     @classmethod
-    def refractive_index_imag(cls, wavelength):
-        """return the imaginary part of the refracive index (= absorption) for soot."""
-        # index from Chang (1990)
+    def absorption_crosssection(cls, wavelength):
+        """return the imaginary part of the refracive index (= absorption) for soot.
+        The index and density are from Bond and Light (1990).
+"""
         # wl_um=1e6*wavelength
-
-        # index_soot_real=1.811+0.1263*log(wl_um)+0.027*log(wl_um)**2+0.0417*log(wl_um)**3
-        # index_soot_im=0.5821+0.1213*log(wl_um)+0.2309*log(wl_um)**2-0.01*log(wl_um)**3
-
-        #m_soot = index_soot_real -1j * index_soot_im
 
         m_soot = 1.95 - 0.79j
         n = (m_soot**2 - 1) / (m_soot**2 + 2)  # absorption cross section of small particles (Bohren and Huffman, 1983)
@@ -48,12 +48,56 @@ class Soot(object):
         return n.imag
 
 
-class HULIS(object):
+class SootSNICAR3(Impurities):
+    """class defining soot"""
+
+    density = 1270.
+
+    @classmethod
+    def absorption_crosssection(cls, wavelength):
+        """return the imaginary part of the refracive index (= absorption) for soot.
+        # SNICAR v3 (Flanner et al. 2021) uses index from Chang (1990) ajusted as recommended by Bond and Bergstrom (2006)
+        # The density is also much smaller
+"""
+        wl_um = 1e6 * wavelength
+
+        index_soot_real = 2.0248 + 0.1263 * np.log(wl_um) + 0.027 * np.log(wl_um)**2 + 0.0417 * np.log(wl_um)**3
+        index_soot_im = 0.7779 + 0.1213 * np.log(wl_um) + 0.2309 * np.log(wl_um)**2 - 0.01 * np.log(wl_um)**3
+
+        m_soot = index_soot_real - 1j * index_soot_im
+        n = (m_soot**2 - 1) / (m_soot**2 + 2)  # absorption cross section of small particles (Bohren and Huffman, 1983)
+
+        return n.imag
+
+
+class SootChang90(Impurities):
+    """class defining soot"""
+
+    density = 2050.
+
+    @classmethod
+    def absorption_crosssection(cls, wavelength):
+        """return the imaginary part of the refracive index (= absorption) for soot.
+        Index from H. Chang and T. T. Charalampopoulos (1990)
+        density is from Warren and Wiscombe p 2739.
+"""
+        wl_um = 1e6 * wavelength
+
+        index_soot_real = 1.811 + 0.1263 * np.log(wl_um) + 0.027 * np.log(wl_um)**2 + 0.0417 * np.log(wl_um)**3
+        index_soot_im = 0.5821 + 0.1213 * np.log(wl_um) + 0.2309 * np.log(wl_um)**2 - 0.01 * np.log(wl_um)**3
+
+        m_soot = index_soot_real - 1j * index_soot_im
+        n = (m_soot**2 - 1) / (m_soot**2 + 2)  # absorption cross section of small particles (Bohren and Huffman, 1983)
+
+        return n.imag
+
+
+class HULIS(Impurities):
 
     density = 1500.0
 
     @classmethod
-    def refractive_index_imag(cls, wavelength):
+    def absorption_crosssection(cls, wavelength):
         """return the imaginary part of the refracive index (= absorption) for HULIS."""
 
         # HULIS from Hoffer (2006)
@@ -64,7 +108,7 @@ class HULIS(object):
         return n.imag
 
 
-class CaponiDust(object):
+class CaponiDust(Impurities):
 
     # based on
     # https://www.atmos-chem-phys.net/17/7175/2017/acp-17-7175-2017.pdf
@@ -158,42 +202,42 @@ class CaponiDust(object):
         return MAE
 
 
-class CrocusDust(object):
-    """class defining dust imaginary refractive index from Muller et al., 2011 (one of the higher bound of dust absorption found in the literrature) and 
-    Skiles et al.,2014 (one of lower bound of dust absorption found in the literrature). Muller et al., 2011 is default
-    François Tuzet, Marie Dumont, June 2018"""
+# class CrocusDust(Impurities):
+#     """class defining dust imaginary refractive index from Muller et al., 2011 (one of the higher bound of dust absorption found in the literrature) and 
+#     Skiles et al.,2014 (one of lower bound of dust absorption found in the literrature). Muller et al., 2011 is default
+#     François Tuzet, Marie Dumont, June 2018"""
 
-    density = 2600.0
+#     density = 2600.0
 
-    wavelength_interp_dust = [299e-3, 350e-3, 400e-3, 450e-3, 500e-3, 550e-3, 600e-3, 650e-3, 700e-3, 750e-3,
-                              800e-3, 900e-3, 1000e-3, 1100e-3, 1200e-3, 1300e-3, 1400e-3, 1500e-3, 1600e-3, 1700e-3, 2501e-3]
-    index_dust = {'muller2011': [0.038, 0.0312, 0.0193, 0.011, 0.0076, 0.0048, 0.003, 0.0025, 0.0021,
-                                 0.002, 0.0018, 0.0017, 0.0016, 0.0016, 0.0016, 0.0015, 0.0015, 0.0015, 0.0014, 0.0014, 0.0014],
-                  'skiles2014': [0.0019, 0.0018, 0.0016, 0.0013, 0.0011, 0.0009, 0.0008, 0.0007, 0.00067, 0.00064,
-                                 0.00062, 0.00063, 0.00059, 0.00057, 0.00054, 0.00052, 0.00055, 0.00052, 0.0005, 0.00048, 0.00048]
-                  }
+#     wavelength_interp_dust = [299e-3, 350e-3, 400e-3, 450e-3, 500e-3, 550e-3, 600e-3, 650e-3, 700e-3, 750e-3,
+#                               800e-3, 900e-3, 1000e-3, 1100e-3, 1200e-3, 1300e-3, 1400e-3, 1500e-3, 1600e-3, 1700e-3, 2501e-3]
+#     index_dust = {'muller2011': [0.038, 0.0312, 0.0193, 0.011, 0.0076, 0.0048, 0.003, 0.0025, 0.0021,
+#                                  0.002, 0.0018, 0.0017, 0.0016, 0.0016, 0.0016, 0.0015, 0.0015, 0.0015, 0.0014, 0.0014, 0.0014],
+#                   'skiles2014': [0.0019, 0.0018, 0.0016, 0.0013, 0.0011, 0.0009, 0.0008, 0.0007, 0.00067, 0.00064,
+#                                  0.00062, 0.00063, 0.00059, 0.00057, 0.00054, 0.00052, 0.00055, 0.00052, 0.0005, 0.00048, 0.00048]
+#                   }
 
-    def __init__(self, formulation='muller2011'):
+#     def __init__(self, formulation='muller2011'):
 
-        if formulation not in self.index_dust:
-            raise ValueError("Refractive index not available")
+#         if formulation not in self.index_dust:
+#             raise ValueError("Refractive index not available")
 
-        self.formulation = formulation
+#         self.formulation = formulation
 
-    def refractive_index_imag(self, wavelength):
-        """return the absorption cross section of small particles (Bohren and Huffman, 1983) for a given type of dust
+#     def absorption_crosssection(self, wavelength):
+#         """return the absorption cross section of small particles (Bohren and Huffman, 1983) for a given type of dust
 
-        :param wavelength: wavelength (in m)
-        :param formulation: by default use "muller2011" but "skiles2014" is also available.
-        : """
+#         :param wavelength: wavelength (in m)
+#         :param formulation: by default use "muller2011" but "skiles2014" is also available.
+#         : """
 
-        wl_um = 1e6 * wavelength
-        index_dust_real = 1.53  # real part of the refractive index
-        index_dust_im = np.exp(np.interp(np.log(wl_um),
-                                         np.log(self.wavelength_interp_dust),
-                                         np.log(self.index_dust[self.formulation])))
-        m_dust = index_dust_real - 1j * index_dust_im
+#         wl_um = 1e6 * wavelength
+#         index_dust_real = 1.53  # real part of the refractive index
+#         index_dust_im = np.exp(np.interp(np.log(wl_um),
+#                                          np.log(self.wavelength_interp_dust),
+#                                          np.log(self.index_dust[self.formulation])))
+#         m_dust = index_dust_real - 1j * index_dust_im
 
-        n = (m_dust**2 - 1) / (m_dust**2 + 2)
+#         n = (m_dust**2 - 1) / (m_dust**2 + 2)
 
-        return n.imag
+#         return n.imag
