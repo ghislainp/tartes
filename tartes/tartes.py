@@ -104,7 +104,6 @@ def albedo(
     thickness: Optional[ArrayOrScalar] = None,
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
-    y0: ArrayOrScalar = default_y0,
     impurities: ArrayOrScalar = 0.0,
     impurities_type: Type[Impurities] = SootSNICAR3,
     refrac_index: Union[str, ArrayOrScalar, Callable] = "p2016",
@@ -135,9 +134,6 @@ def albedo(
         default value is 1.6, taken from Libois et al. 2014. B0 can be scalar (constant in the snowpack) or an array like
         the SSA.
     :type B0: array or scalar
-    :param y0: Value of y of snow grains at nr=1.3 (no unit).  See Eqs 72 and 75 in the "science" doc for the default
-        value. y0 can be scalar (same for all layers) or an array like the SSA.
-    :type y0: array or scalar
     :param impurities: impurities concentration (kg/kg) in each layer. It is either a constant or an array with size
         equal to the number of layers. The array is 1-d if only one type of impurities is used and 2-d otherwise.
     :type impurities: array or scalar
@@ -178,7 +174,6 @@ def albedo(
         thickness,
         g0=g0,
         B0=B0,
-        y0=y0,
         impurities=impurities,
         impurities_type=impurities_type,
         soilalbedo=soilalbedo,
@@ -203,7 +198,6 @@ def absorption_profile(
     thickness: Optional[ArrayOrScalar] = None,
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
-    y0: ArrayOrScalar = default_y0,
     impurities: ArrayOrScalar = 0.0,
     impurities_type: Type[Impurities] = SootSNICAR3,
     refrac_index: Union[str, ArrayOrScalar, Callable] = "p2016",
@@ -232,9 +226,6 @@ def absorption_profile(
             default value is 1.6, taken from Libois et al. 2014. B0 can be scalar (constant in the snowpack) or an array like the
             SSA.
         :type B0: array or scalar
-        :param y0: Value of y of snow grains at nr=1.3 (no unit).  See Eqs 72 and 75 in the "science" doc for the default value.
-            y0 can be scalar (same for all layers) or an array like the SSA.
-        :type y0: array or scalar
         :param impurities: impurities concentration (kg/kg) in each layer. It is either a constant or an array with size equal
             to the number of layers. The array is 1-d if only one type of impurities is used and 2-d otherwise.
         :type impurities: array or scalar
@@ -275,7 +266,6 @@ def absorption_profile(
         thickness,
         g0=g0,
         B0=B0,
-        y0=y0,
         impurities=impurities,
         impurities_type=impurities_type,
         soilalbedo=soilalbedo,
@@ -299,7 +289,6 @@ def irradiance_profiles(
     thickness: Optional[ArrayOrScalar] = None,
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
-    y0: ArrayOrScalar = default_y0,
     impurities: ArrayOrScalar = 0.0,
     impurities_type: Type[Impurities] = SootSNICAR3,
     refrac_index: Union[str, ArrayOrScalar, Callable] = "p2016",
@@ -331,9 +320,6 @@ def irradiance_profiles(
         default value is 1.6, taken from Libois et al. 2014. B0 can be scalar (constant in the snowpack) or an array like
         the SSA.
     :type B0: array or scalar
-    :param y0: Value of y of snow grains at nr=1.3 (no unit).  See Eqs 72 and 75 in the "science" doc for the default
-        value. y0 can be scalar (same for all layers) or an array like the SSA.
-    :type y0: array or scalar
     :param impurities: impurities concentration (kg/kg) in each layer. It is either a constant or an array with size
         equal to the number of layers. The array is 1-d if only one type of impurities is used and 2-d otherwise.
     :type impurities: array or scalar
@@ -376,7 +362,6 @@ def irradiance_profiles(
         thickness,
         g0=g0,
         B0=B0,
-        y0=y0,
         impurities=impurities,
         impurities_type=impurities_type,
         soilalbedo=soilalbedo,
@@ -401,7 +386,6 @@ def actinic_profile(
     thickness: Optional[ArrayOrScalar] = None,
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
-    y0: ArrayOrScalar = default_y0,
     impurities: ArrayOrScalar = 0.0,
     impurities_type: Type[Impurities] = SootSNICAR3,
     refrac_index: Union[str, ArrayOrScalar, Callable] = "p2016",
@@ -431,9 +415,6 @@ def actinic_profile(
         default value is 1.6, taken from Libois et al. 2014. B0 can be scalar (constant in the snowpack) or an array like the
         SSA.
     :type B0: array or scalar
-    :param y0: Value of y of snow grains at nr=1.3 (no unit).  See Eqs 72 and 75 in the "science" doc for the default value.
-        y0 can be scalar (same for all layers) or an array like the SSA.
-    :type y0: array or scalar
     :param impurities: impurities concentration (kg/kg) in each layer. It is either a constant or an array with size equal
         to the number of layers. The array is 1-d if only one type of impurities is used and 2-d otherwise.
     :type impurities: array or scalar
@@ -473,7 +454,6 @@ def actinic_profile(
         thickness,
         g0=g0,
         B0=B0,
-        y0=y0,
         impurities=impurities,
         impurities_type=impurities_type,
         soilalbedo=soilalbedo,
@@ -655,7 +635,6 @@ def single_scattering_optical_parameters(
     impurities_content: Optional[ArrayOrScalar] = None,
     impurities_type: Optional[Type[Impurities]] = None,
     g0: ArrayOrScalar = default_g0,
-    y0: ArrayOrScalar = default_y0,
     B0: Union[str, ArrayOrScalar] = default_B0,
 ) -> tuple[ArrayOrScalar]:
     """return single scattering parameters of one layer
@@ -694,10 +673,10 @@ def single_scattering_optical_parameters(
 
     if B0 == "n^2":
         B0 = refrac_index[0] ** 2
-        ginf, g00, B, W, y = shape_parameter_variations(nr, g0, y0, default_W0, B0)
+        ginf, g00, B, W, y = shape_parameter_variations(nr, g0, default_y0, default_W0, B0)
         B = B0  # force B = B0 independent of the wavelength
     else:
-        ginf, g00, B, W, y = shape_parameter_variations(nr, g0, y0, default_W0, B0)
+        ginf, g00, B, W, y = shape_parameter_variations(nr, g0, default_y0, default_W0, B0)
 
     # calculation of the spectral asymmetry parameter of snow
     g = ginf - (ginf - g00) * np.exp(-y * c)
@@ -1459,7 +1438,6 @@ def tartes(
     thickness: Optional[ArrayOrScalar] = None,
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
-    y0: ArrayOrScalar = default_y0,
     impurities: ArrayOrScalar = 0.0,
     impurities_type: Type[Impurities] = SootSNICAR3,
     refrac_index: Union[str, ArrayOrScalar, Callable] = "p2016",
@@ -1497,9 +1475,6 @@ def tartes(
         The default value is 1.6, taken from Libois et al. 2014. B0 can be scalar (constant in the snowpack) or an array
         like the SSA.
     :type B0: array or scalar
-    :param y0: Value of y of snow grains at nr=1.3 (no unit).  See Eqs 72 and 75 in the "science" doc for the default value.
-        y0 can be scalar (same for all layers) or an array like the SSA.
-    :type y0: array or scalar
     :param impurities: impurities concentration (g/g/) in each layer. It is either a constant or an array with size
         equal to the number of layers. The array is 1-d if only one type of impurities is used and 2-d otherwise.
     :type impurities: array or scalar
@@ -1586,7 +1561,6 @@ def tartes(
             soa(impurities, n),
             impurities_type,
             soa(g0, n),
-            soa(y0, n),
             soa(B0, n),
         )
 
