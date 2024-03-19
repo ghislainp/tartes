@@ -168,10 +168,10 @@ def albedo(
     mudir = np.cos(np.deg2rad(sza))
 
     albedo = tartes(
-        wavelength,
-        SSA,
-        density,
-        thickness,
+        wavelength=wavelength,
+        SSA=SSA,
+        density=density,
+        thickness=thickness,
         g0=g0,
         B0=B0,
         impurities=impurities,
@@ -589,29 +589,11 @@ def impurities_co_single_scattering_albedo(
         if impurities_content <= 0:
             return 0.0
 
-        elif hasattr(impurities_type, "absorption_crosssection"):
-            assert not hasattr(impurities_type, "absorption_coefficient")
-            Cabs_impurities = -impurities_type.absorption_crosssection(wavelength)
-            density_impurities = impurities_type.density
+        mae_impurities = impurities_type.MAE(wavelength)  # in m^-1 / (kg m^-3)
 
-            # Eq (9)
-            return (
-                (12.0 * np.pi)
-                / (wavelength * SSA)
-                * impurities_content
-                / density_impurities
-                * Cabs_impurities
-            )
-
-        elif hasattr(impurities_type, "MAE"):  # added by Ghislain
-            mae_impurities = impurities_type.MAE(wavelength)  # in m^-1 / (kg m^-3)
-
-            # density could be remove because it is
-            # return 2/(density*SSA) * mae_impurities * impurities_content * density  # Eq (73) and (inline between 77 and 78)
-            # Eq (73) and (inline between 77 and 78) (density is cancelled)
-            return 2.0 / SSA * mae_impurities * impurities_content
-        else:
-            raise Exception("the impurities class is not well defined.")
+        # density could be remove because it is
+        # return 2/(density*SSA) * mae_impurities * impurities_content * density
+        return 2.0 / SSA * mae_impurities * impurities_content
 
     if hasattr(impurities_type, "__iter__"):
         assert isinstance(impurities_content, Sequence)
@@ -1522,6 +1504,13 @@ def tartes(
     # However, from  22 June 2022, it was decided to use a value consistent with the ART theory
     # that is 48° which corresponds to 3/7*(1+2*cos(theta)) = 1.
 
+    if density is None:
+        if thickness is not None:
+            raise Exception(
+                "no density argument is only allowed for semi-infinite snowpacks (thickness=None)"
+            )
+        density = 300.0  # any value is good for semi-infinite snowpacks
+
     if thickness is None:
         thickness = 1e9  # chosing a value should never been a problem...
     thickness = np.atleast_1d(thickness)
@@ -1533,12 +1522,6 @@ def tartes(
         SSA = np.array(SSA)
         assert len(SSA) == nlyr
 
-    if density is None:
-        if thickness is not None:
-            raise Exception(
-                "no density argument is only allowed for semi-infinite snowpacks (thickness=None)"
-            )
-        density = 300.0  # any value is good for semi-infinite snowpacks
 
     if not np.isscalar(density):
         density = np.array(density)

@@ -25,18 +25,27 @@
 import numpy as np
 import math
 
-
 class Impurities(object):
     pass
 
 
-class SootBond06(Impurities):
+class RayleighImpurities(Impurities):
+
+    @classmethod
+    def MAE(cls, wavelength):
+        """return the Mass absorption efficiency of the particles in m2/kg"""
+
+        MAE = (6 * np.pi) / wavelength * cls.absorption_crosssection_efficiency(wavelength) / cls.density
+        return MAE
+
+
+class SootBond06(RayleighImpurities):
     """class defining soot"""
 
     density = 1800.0
 
     @classmethod
-    def absorption_crosssection(cls, wavelength):
+    def absorption_crosssection_efficiency(cls, wavelength):
         """return the imaginary part of the refracive index (= absorption) for soot.
         The index and density are from Bond and Light (1990).
 """
@@ -45,16 +54,16 @@ class SootBond06(Impurities):
         m_soot = 1.95 - 0.79j
         n = (m_soot**2 - 1) / (m_soot**2 + 2)  # absorption cross section of small particles (Bohren and Huffman, 1983)
 
-        return n.imag
+        return abs(n.imag)
 
 
-class SootSNICAR3(Impurities):
+class SootSNICAR3(RayleighImpurities):
     """class defining soot"""
 
     density = 1270.
 
     @classmethod
-    def absorption_crosssection(cls, wavelength):
+    def absorption_crosssection_efficiency(cls, wavelength):
         """return the imaginary part of the refracive index (= absorption) for soot.
         # SNICAR v3 (Flanner et al. 2021) uses index from Chang (1990) ajusted as recommended by Bond and Bergstrom (2006)
         # The density is also much smaller
@@ -67,16 +76,16 @@ class SootSNICAR3(Impurities):
         m_soot = index_soot_real - 1j * index_soot_im
         n = (m_soot**2 - 1) / (m_soot**2 + 2)  # absorption cross section of small particles (Bohren and Huffman, 1983)
 
-        return n.imag
+        return abs(n.imag)
 
 
-class SootChang90(Impurities):
+class SootChang90(RayleighImpurities):
     """class defining soot"""
 
     density = 2050.
 
     @classmethod
-    def absorption_crosssection(cls, wavelength):
+    def absorption_crosssection_efficiency(cls, wavelength):
         """return the imaginary part of the refracive index (= absorption) for soot.
         Index from H. Chang and T. T. Charalampopoulos (1990)
         density is from Warren and Wiscombe p 2739.
@@ -89,15 +98,15 @@ class SootChang90(Impurities):
         m_soot = index_soot_real - 1j * index_soot_im
         n = (m_soot**2 - 1) / (m_soot**2 + 2)  # absorption cross section of small particles (Bohren and Huffman, 1983)
 
-        return n.imag
+        return abs(n.imag)
 
 
-class HULIS(Impurities):
+class HULIS(RayleighImpurities):
 
     density = 1500.0
 
     @classmethod
-    def absorption_crosssection(cls, wavelength):
+    def absorption_crosssection_efficiency(cls, wavelength):
         """return the imaginary part of the refracive index (= absorption) for HULIS."""
 
         # HULIS from Hoffer (2006)
@@ -105,7 +114,7 @@ class HULIS(Impurities):
         m_hulis = 1.67 - 8e17 * 1j * (wl_um * 1e3)**(-7.0639) * 1e3 * cls.density * wl_um * 1e-6 / (4 * math.pi)
         n = (m_hulis**2 - 1) / (m_hulis**2 + 2)
 
-        return n.imag
+        return abs(n.imag)
 
 
 class CaponiDust(Impurities):
@@ -224,7 +233,7 @@ class CaponiDust(Impurities):
 
 #         self.formulation = formulation
 
-#     def absorption_crosssection(self, wavelength):
+#     def absorption_crosssection_efficiency(self, wavelength):
 #         """return the absorption cross section of small particles (Bohren and Huffman, 1983) for a given type of dust
 
 #         :param wavelength: wavelength (in m)
