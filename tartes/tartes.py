@@ -839,7 +839,7 @@ class Streams(object):
         return_dir_diff: bool,
     ):
         dir_frac = np.array(dir_frac)
-        mu_list = list(np.atleast_1d(mudir)) if np.array(dir_frac > 0) else []
+        mu_list = list(np.atleast_1d(mudir)) if np.any(dir_frac > 0) else []
 
         self.return_dir_diff = return_dir_diff
         self.nstreams_dir = len(mu_list)
