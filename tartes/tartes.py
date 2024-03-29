@@ -724,8 +724,11 @@ def infinite_medium_optical_parameters_aart(
     :returns: albedo and normalised AFEC
     """
 
-    ke = np.sqrt(3 * (1.0 - ssalb) * (1.0 - ssalb * g))
-    albedo = np.exp(-4 * np.sqrt((1.0 - ssalb) / (3 * (1.0 - g))))
+    g_star = g #/ (1 + g)
+    ssalb_star = ssalb #* (1 - g**2) / (1 - g**2 * ssalb)
+
+    ke = np.sqrt(3 * (1.0 - ssalb_star) * (1.0 - ssalb_star * g_star))
+    albedo = np.exp(-4 * np.sqrt((1.0 - ssalb_star) / (3 * (1.0 - g_star))))
 
     return albedo, ke
 
@@ -737,14 +740,15 @@ infinite_medium_optical_parameters = {
 }
 
 
-def taustar_vector(
+def taustar_vector_delta_eddington(
     sigext: ArrayOrScalar,
     thickness: npt.NDArray,
     ssalb: ArrayOrScalar,
     g: ArrayOrScalar,
     ke: ArrayOrScalar,
 ):
-    """compute the taustar and dtaustar of the snowpack, the optical depth of each layer and cumulated optical depth
+    """compute the taustar and dtaustar of the snowpack for the delta-eddington formulation, 
+    the optical depth of each layer and cumulated optical depth
     see doc Section 1.2, 1.8, 2.4
 
     :param sigext: extinction coefficient
@@ -772,6 +776,51 @@ def taustar_vector(
     taustar = np.cumsum(dtaustar, axis=1)
 
     return dtaustar_ub, dtaustar, taustar
+
+
+def taustar_vector_aart(
+    sigext: ArrayOrScalar,
+    thickness: npt.NDArray,
+    ssalb: ArrayOrScalar,
+    g: ArrayOrScalar,
+    ke: ArrayOrScalar,
+):
+    """compute the taustar and dtaustar of the snowpack for the AART formulation, the optical depth of each layer and
+    cumulated optical depth.
+    see doc Section 1.2, 1.8, 2.4
+
+    :param sigext: extinction coefficient
+    :type sigext: array
+    :param thickness: thickness of each layers (m)
+    :type thickness: array
+    :param ssalb: single scattering albedo (no unit)
+    :type ssalb: array
+    :param g: asymmetry factor (no unit)
+    :type g: array
+    :param ke: delta Eddington asymptotic flux extinction coefficient (no unit)
+    :type ke: array
+
+    :returns: optical depth of each layer (unbounded + bounded) and cumulated optical depth (no unit)
+    """
+    # delta-Eddington variable change
+    dtaustar_ub = sigext * thickness[np.newaxis, :]
+
+    maximum_optical_depth_per_layer = 200.0
+    dtaustar = np.minimum(dtaustar_ub, maximum_optical_depth_per_layer / ke)
+    # this is a dirty hack and causes problem with the irradiance profile calculation.
+    # This is reason why we need to return the unbunded and the bunded dtaustar.
+    # In practice, it is safe (but dirty) as a layer with optical >200 has a null transmittance
+
+    taustar = np.cumsum(dtaustar, axis=1)
+
+    return dtaustar_ub, dtaustar, taustar
+
+
+# register the possible option for the infinite_medium_optical_parameters calculation
+taustar_vector = {
+    "delta_eddington": taustar_vector_delta_eddington,
+    "aart": taustar_vector_aart,
+}
 
 
 class Streams(object):
@@ -970,19 +1019,21 @@ def Gp_Gm_vectors_aart(
     g = g[:, None]
     ke = ke[:, None]
 
-    # g_star = g / (1 + g)
-    ssalb_star = ssalb * (1 - g**2) / (1 - g**2 * ssalb)
+    # the AART version does not use the delta-scaled quantities
+    # g_star = g #/ (1 + g)
+    # ssalb_star = ssalb #* (1 - g**2) / (1 - g**2 * ssalb)
 
-    G = (
-        mu * ssalb_star / ((ke * mu) ** 2 - 1)
+    G0 = (
+        mu * ssalb / ((ke * mu) ** 2 - 1)
     )  # mu instead of mu**2 because we have factorized out mu*Fdot
 
     a = 4 * np.sqrt((1 - ssalb) / (3 * (1 - g)))
     albedo_diff = np.exp(-a)
     albedo_dir = np.exp(-a * 3.0 / 7 * (1 + 2 * mu))
 
-    Gm = -(albedo_dir - 3 / 2 * G) / (albedo_diff + 1)
-    Gp = 3 / 2 * G - Gm
+    sum_Gm_Gp = 3 / 2 * G0 * (1 - ssalb * g + g)
+    Gm = (sum_Gm_Gp - albedo_dir) / (albedo_diff + 1)
+    Gp = sum_Gm_Gp - Gm
 
     return Gp, Gm
 
