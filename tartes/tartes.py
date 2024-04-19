@@ -46,10 +46,11 @@ def ssa(r_opt: ArrayOrScalar) -> ArrayOrScalar:
     return (3 / 917.0) / r_opt
 
 
-default_B0 = "n^2"  # Based on Robledano et al. 2023
-default_g0 = (0.64 + 1) / 2  # (=0.82) Middle range of Robledano et al. 2023
+default_B0 = 1.6  # Based on Libois et al. 2014 # only use with shape_parameterization="constant" and "linear"
+robledano23_g0 = (0.64 + 1) / 2  # (=0.82) Middle range of Robledano et al. 2023
 
-# default_B0 = 1.6  # Based on Libois et al. 2014
+default_g0 = robledano23_g0
+
 # deduce for the b value derived from Gallet et al. 2009 SSA versus albedo measurements.
 # default_g0 = 0.86
 
@@ -102,6 +103,7 @@ def albedo(
     SSA: ArrayOrScalar,
     density: Optional[ArrayOrScalar] = None,
     thickness: Optional[ArrayOrScalar] = None,
+    shape_parameterization: str = "robledano23",
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
     impurities: ArrayOrScalar = 0.0,
@@ -127,6 +129,10 @@ def albedo(
     :type density: array
     :param thickness: thickness of each layer (m). By default is None meaning a semi-infinite medium.
     :type thickness: array
+    :param shape_parameterization: method to determine the values of B and g as a function of the wavelength.
+        "robledano23", the default, use B=n^2 and a constant defaut g. "constant" uses B0 and g0 parameters for all
+        wavelengths. "linear" use the linear relationships as a function of the refractive index deduced from Kokhanosvky
+        2004 tables (p61).
     :param g0: asymmetry parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The default
         value is 0.86. g0 can be scalar (constant in the snowpack) or an array like the SSA.
     :type g0: array or scalar
@@ -172,6 +178,7 @@ def albedo(
         SSA=SSA,
         density=density,
         thickness=thickness,
+        shape_parameterization=shape_parameterization,
         g0=g0,
         B0=B0,
         impurities=impurities,
@@ -196,6 +203,7 @@ def absorption_profile(
     SSA: ArrayOrScalar,
     density: Optional[ArrayOrScalar] = None,
     thickness: Optional[ArrayOrScalar] = None,
+    shape_parameterization: str = "robledano23",
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
     impurities: ArrayOrScalar = 0.0,
@@ -219,6 +227,10 @@ def absorption_profile(
         :type density: array
         :param thickness: thickness of each layer (m). By default is None meaning a semi-infinite medium.
         :type thickness: array
+        :param shape_parameterization: method to determine the values of B and g as a function of the wavelength.
+            "robledano23", the default, use B=n^2 and a constant defaut g. "constant" uses B0 and g0 parameters for all
+            wavelengths. "linear" use the linear relationships as a function of the refractive index deduced from Kokhanosvky
+            2004 tables (p61).
         :param g0: asymmetry parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The default value is
             0.86. g0 can be scalar (constant in the snowpack) or an array like the SSA.
         :type g0: array or scalar
@@ -260,10 +272,11 @@ def absorption_profile(
     mudir = np.cos(np.deg2rad(sza))
 
     _, absorption = tartes(
-        wavelength,
-        SSA,
-        density,
-        thickness,
+        wavelength=wavelength,
+        SSA=SSA,
+        density=density,
+        thickness=thickness,
+        shape_parameterization=shape_parameterization,
         g0=g0,
         B0=B0,
         impurities=impurities,
@@ -287,6 +300,7 @@ def irradiance_profiles(
     SSA: ArrayOrScalar,
     density: Optional[ArrayOrScalar] = None,
     thickness: Optional[ArrayOrScalar] = None,
+    shape_parameterization: str = "robledano23",
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
     impurities: ArrayOrScalar = 0.0,
@@ -313,6 +327,10 @@ def irradiance_profiles(
     :type density: array
     :param thickness: thickness of each layer (m). By default is None meaning a semi-infinite medium.
     :type thickness: array
+    :param shape_parameterization: method to determine the values of B and g as a function of the wavelength.
+        "robledano23", the default, use B=n^2 and a constant defaut g. "constant" uses B0 and g0 parameters for all
+        wavelengths. "linear" use the linear relationships as a function of the refractive index deduced from Kokhanosvky
+        2004 tables (p61).
     :param g0: asymmetry parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The default
         value is 0.86. g0 can be scalar (constant in the snowpack) or an array like the SSA.
     :type g0: array or scalar
@@ -356,10 +374,11 @@ def irradiance_profiles(
     mudir = np.cos(np.deg2rad(sza))
 
     albedo, down, up = tartes(
-        wavelength,
-        SSA,
-        density,
-        thickness,
+        wavelength=wavelength,
+        SSA=SSA,
+        density=density,
+        thickness=thickness,
+        shape_parameterization=shape_parameterization,
         g0=g0,
         B0=B0,
         impurities=impurities,
@@ -384,6 +403,7 @@ def actinic_profile(
     SSA: ArrayOrScalar,
     density: Optional[ArrayOrScalar] = None,
     thickness: Optional[ArrayOrScalar] = None,
+    shape_parameterization: str = "robledano23",
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
     impurities: ArrayOrScalar = 0.0,
@@ -408,6 +428,10 @@ def actinic_profile(
     :type density: array
     :param thickness: thickness of each layer (m). By default is None meaning a semi-infinite medium.
     :type thickness: array
+    :param shape_parameterization: method to determine the values of B and g as a function of the wavelength.
+        "robledano23", the default, use B=n^2 and a constant defaut g. "constant" uses B0 and g0 parameters for all
+        wavelengths. "linear" use the linear relationships as a function of the refractive index deduced from Kokhanosvky
+        2004 tables (p61).
     :param g0: asymmetry parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The default value is
         0.86. g0 can be scalar (constant in the snowpack) or an array like the SSA.
     :type g0: array or scalar
@@ -448,10 +472,11 @@ def actinic_profile(
     mudir = np.cos(np.deg2rad(sza))
 
     albedo, actinic = tartes(
-        wavelength,
-        SSA,
-        density,
-        thickness,
+        wavelength=wavelength,
+        SSA=SSA,
+        density=density,
+        thickness=thickness,
+        shape_parameterization=shape_parameterization,
         g0=g0,
         B0=B0,
         impurities=impurities,
@@ -522,6 +547,7 @@ def atmospheric_incident_spectrum(
 
 
 def shape_parameter_variations(
+    shape_parameterization: str,
     nr: ArrayOrScalar,
     g0: ArrayOrScalar,
     y0: ArrayOrScalar,
@@ -549,9 +575,19 @@ def shape_parameter_variations(
 
     """
 
-    ginf = 0.9751 - 0.105 * (nr - 1.3)
-    g00 = g0 - 0.38 * (nr - 1.3)
-    B = B0 + 0.4 * (nr - 1.3)
+    if shape_parameterization == "robledano23":
+        B = nr ** 2
+        ginf = g00 = robledano23_g0
+    elif shape_parameterization == "constant":
+        B = B0
+        ginf = g00 = g0
+    elif shape_parameterization == "linear":
+        ginf = 0.9751 - 0.105 * (nr - 1.3)
+        g00 = g0 - 0.38 * (nr - 1.3)
+        B = B0 + 0.4 * (nr - 1.3)
+    else:
+        raise Exception("The argument shape_parameterization is incorrect. Refer to the documentation for possible options")
+
     W = W0 + 0.17 * (nr - 1.3)
     y = y0 + 0.752 * (nr - 1.3)
 
@@ -616,6 +652,7 @@ def single_scattering_optical_parameters(
     SSA: ArrayOrScalar,
     impurities_content: Optional[ArrayOrScalar] = None,
     impurities_type: Optional[Type[Impurities]] = None,
+    shape_parameterization: str = "robledano23",
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
 ) -> tuple[ArrayOrScalar]:
@@ -653,12 +690,7 @@ def single_scattering_optical_parameters(
     nr, ni = refrac_index  # determination of ice refractive index
     c = 24.0 * np.pi * ni / (917.0 * wavelength) / SSA  # 917 is ice density
 
-    if B0 == "n^2":
-        B0 = refrac_index[0] ** 2
-        ginf, g00, B, W, y = shape_parameter_variations(nr, g0, default_y0, default_W0, B0)
-        B = B0  # force B = B0 independent of the wavelength
-    else:
-        ginf, g00, B, W, y = shape_parameter_variations(nr, g0, default_y0, default_W0, B0)
+    ginf, g00, B, W, y = shape_parameter_variations(shape_parameterization, nr, g0, default_y0, default_W0, B0)
 
     # calculation of the spectral asymmetry parameter of snow
     g = ginf - (ginf - g00) * np.exp(-y * c)
@@ -1469,6 +1501,7 @@ def tartes(
     SSA: ArrayOrScalar,
     density: Optional[ArrayOrScalar] = None,
     thickness: Optional[ArrayOrScalar] = None,
+    shape_parameterization: str = "robledano23",
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
     impurities: ArrayOrScalar = 0.0,
@@ -1501,6 +1534,10 @@ def tartes(
     :type density: array or scalar
     :param thickness: thickness of the layers (m)
     :type thickness: array or scalar
+    :param shape_parameterization: method to determine the values of B and g as a function of the wavelength.
+        "robledano23", the default, use B=n^2 and a constant defaut g. "constant" uses B0 and g0 parameters for all
+        wavelengths. "linear" use the linear relationships as a function of the refractive index deduced from Kokhanosvky
+        2004 tables (p61).
     :param g0: asymmetry parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit).
         The default value is 0.86. g0 can be scalar (constant in the snowpack) or an array like the SSA.
     :type g0: array or scalar
@@ -1594,6 +1631,7 @@ def tartes(
             soa(SSA, n),
             soa(impurities, n),
             impurities_type,
+            shape_parameterization,
             soa(g0, n),
             soa(B0, n),
         )
@@ -1693,7 +1731,7 @@ with the diffuse 2 stream calculation."""
         )
 
     # 2 computation on every wavelength and layer of the optical depth
-    dtaustar_ub, dtaustar, taustar = taustar_vector(sigext, thickness, ssalb, g, ke)
+    dtaustar_ub, dtaustar, taustar = taustar_vector[infprop_method](sigext, thickness, ssalb, g, ke)
 
     # use to limit the computation at depth for highly absorbing wavelength. Seems to be inefficient in
     # Python for a normal ~40 layers snowpack and 10nm resolution.
