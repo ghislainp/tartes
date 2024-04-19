@@ -109,7 +109,7 @@ class HULIS(RayleighImpurities):
     def absorption_crosssection_efficiency(cls, wavelength):
         """return the imaginary part of the refracive index (= absorption) for HULIS."""
 
-        # HULIS from Hoffer (2006)
+        # HULIS from Hoffer (2006) doi: 10.5194/acp-6-3563-2006
         wl_um = 1e6 * wavelength
         m_hulis = 1.67 - 8e17 * 1j * (wl_um * 1e3)**(-7.0639) * 1e3 * cls.density * wl_um * 1e-6 / (4 * math.pi)
         n = (m_hulis**2 - 1) / (m_hulis**2 + 2)
