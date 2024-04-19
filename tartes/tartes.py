@@ -92,8 +92,8 @@ def broadband_albedo(
     albedo_dir, albedo_diff = albedo(wavelength, SSA, dir_frac=dir_frac, **kwargs)
 
     broadband_albedo = scipy.integrate.simpson(
-        totflux * (dir_frac * albedo_dir + (1.0 - dir_frac) * albedo_diff), wavelength
-    ) / scipy.integrate.simpson(totflux, wavelength)
+        totflux * (dir_frac * albedo_dir + (1.0 - dir_frac) * albedo_diff), x=wavelength
+    ) / scipy.integrate.simpson(totflux, x=wavelength)
 
     return broadband_albedo
 
