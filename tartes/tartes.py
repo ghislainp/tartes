@@ -252,7 +252,7 @@ def absorption_profile(
         :param dir_frac: fraction of directional flux over the total flux (the default is dir_frac = 0 meaning 100% diffuse
             incident flux)
         :type dir_frac: array
-        :param totflux: total spectral incident flux (direct+diffuse) (W/m^2)
+        :param totflux: total spectral incident flux (direct+diffuse) (free unit)
         :type totflux: array
         :param diff_method: the method used to compute the diffuse radiation. Possible options are
             1) "aart eq" which perform direct calculation at the 48.2° equivalent angle according to AART,
