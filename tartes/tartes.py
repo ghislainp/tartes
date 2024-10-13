@@ -914,7 +914,7 @@ class Streams(object):
         if not self.return_dir_diff and (self.nstreams_diff > 0):
             # weight the direct x(..., s) and the diffuse x
             if self.nstreams_dir > 0:
-                x = dir_frac * x[..., :-1] + (1 - dir_frac) * x[..., -1]
+                x = dir_frac * x[..., :-1] + (1 - dir_frac) * x[..., -1:]
             else:
                 x = x  # do nothing
         return x
@@ -1413,7 +1413,7 @@ def get_actinic_profile(
     depth_generator: DepthGenerator,
 ) -> npt.NDArray[np.floating]:
     # compute the profile of actinic flux
-    actinic_profile = np.zeros(len(depth_generator.z))
+    actinic_profile = np.zeros((len(depth_generator.z), len(mu)))
 
     solution_A, solution_B, solution_C, solution_D = solutions
     mu = mu[np.newaxis, :]
