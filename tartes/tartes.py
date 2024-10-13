@@ -33,7 +33,8 @@ from .refractive_index import refice1995, refice2008, refice2016
 
 
 # Many tartes arguments can be array or scalar of float/int
-ArrayOrScalar = Union[npt.NDArray[np.floating], float, Sequence[float]]
+ArrayOrScalar = Union[npt.NDArray[np.floating], float, int]
+FlexibleArray = Union[npt.NDArray[np.floating], float, int, Sequence[float]]
 
 
 def ssa(r_opt: ArrayOrScalar) -> ArrayOrScalar:
@@ -62,10 +63,10 @@ default_W0 = 0.0611
 
 
 def broadband_albedo(
-    wavelength: ArrayOrScalar,
-    totflux: ArrayOrScalar,
-    dir_frac: ArrayOrScalar,
-    SSA: ArrayOrScalar,
+    wavelength: FlexibleArray,
+    totflux: FlexibleArray,
+    dir_frac: FlexibleArray,
+    SSA: FlexibleArray,
     **kwargs,
 ):
     """compute the broadband albedo of a snowpack specified by the profiles of SSA and density using TARTES. Refer to
@@ -85,14 +86,14 @@ def broadband_albedo(
     :returns: broadband albedo
     """
 
-    kwargs["return_dir_diff"] = True
-    dir_frac = np.atleast_1d(dir_frac)
+    kwargs['return_dir_diff'] = True
+    dir_frac_np = np.atleast_1d(dir_frac)
     totflux = np.atleast_1d(totflux)
 
     albedo_dir, albedo_diff = albedo(wavelength, SSA, dir_frac=dir_frac, **kwargs)
 
     broadband_albedo = scipy.integrate.simpson(
-        totflux * (dir_frac * albedo_dir + (1.0 - dir_frac) * albedo_diff), x=wavelength
+        totflux * (dir_frac_np * albedo_dir + (1.0 - dir_frac_np) * albedo_diff), x=wavelength
     ) / scipy.integrate.simpson(totflux, x=wavelength)
 
     return broadband_albedo
@@ -103,16 +104,16 @@ def albedo(
     SSA: ArrayOrScalar,
     density: Optional[ArrayOrScalar] = None,
     thickness: Optional[ArrayOrScalar] = None,
-    shape_parameterization: str = "robledano23",
+    shape_parameterization: str = 'robledano23',
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
     impurities: ArrayOrScalar = 0.0,
     impurities_type: Type[Impurities] = SootSNICAR3,
-    refrac_index: Union[str, ArrayOrScalar, Callable] = "p2016",
+    refrac_index: Union[str, ArrayOrScalar, Callable] = 'p2016',
     soilalbedo: ArrayOrScalar = 0.0,
     dir_frac: ArrayOrScalar = 0.0,
-    diff_method: str = "aart eq",
-    infprop_method: str = "delta_eddington",
+    diff_method: str = 'aart eq',
+    infprop_method: str = 'delta_eddington',
     sza: ArrayOrScalar = 0.0,
     return_dir_diff: bool = False,
 ) -> Union[ArrayOrScalar, tuple[ArrayOrScalar, ArrayOrScalar]]:
@@ -199,22 +200,22 @@ def albedo(
 
 
 def absorption_profile(
-    wavelength: ArrayOrScalar,
-    SSA: ArrayOrScalar,
-    density: Optional[ArrayOrScalar] = None,
-    thickness: Optional[ArrayOrScalar] = None,
-    shape_parameterization: str = "robledano23",
-    g0: ArrayOrScalar = default_g0,
-    B0: Union[str, ArrayOrScalar] = default_B0,
-    impurities: ArrayOrScalar = 0.0,
+    wavelength: FlexibleArray,
+    SSA: FlexibleArray,
+    density: Optional[FlexibleArray] = None,
+    thickness: Optional[FlexibleArray] = None,
+    shape_parameterization: str = 'robledano23',
+    g0: FlexibleArray = default_g0,
+    B0: Union[str, FlexibleArray] = default_B0,
+    impurities: FlexibleArray = 0.0,
     impurities_type: Type[Impurities] = SootSNICAR3,
-    refrac_index: Union[str, ArrayOrScalar, Callable] = "p2016",
-    soilalbedo: ArrayOrScalar = 0.0,
-    dir_frac: ArrayOrScalar = 0.0,
-    totflux: ArrayOrScalar = 1.0,
-    diff_method: str = "aart eq",
-    infprop_method: str = "delta_eddington",
-    sza: ArrayOrScalar = 0.0,
+    refrac_index: Union[str, FlexibleArray, Callable] = 'p2016',
+    soilalbedo: FlexibleArray = 0.0,
+    dir_frac: FlexibleArray = 0.0,
+    totflux: FlexibleArray = 1.0,
+    diff_method: str = 'aart eq',
+    infprop_method: str = 'delta_eddington',
+    sza: FlexibleArray = 0.0,
 ) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """compute the energy absorbed in every layer and in the soil. The parameters are the same as for the albedo function. If
     both the albedo and the absorption_profile is needed, a direct call to the tartes function is recommended.
@@ -295,24 +296,24 @@ def absorption_profile(
 
 
 def irradiance_profiles(
-    wavelength: ArrayOrScalar,
-    z: ArrayOrScalar,
-    SSA: ArrayOrScalar,
-    density: Optional[ArrayOrScalar] = None,
-    thickness: Optional[ArrayOrScalar] = None,
-    shape_parameterization: str = "robledano23",
-    g0: ArrayOrScalar = default_g0,
-    B0: Union[str, ArrayOrScalar] = default_B0,
-    impurities: ArrayOrScalar = 0.0,
+    wavelength: FlexibleArray,
+    z: FlexibleArray,
+    SSA: FlexibleArray,
+    density: Optional[FlexibleArray] = None,
+    thickness: Optional[FlexibleArray] = None,
+    shape_parameterization: str = 'robledano23',
+    g0: FlexibleArray = default_g0,
+    B0: Union[str, FlexibleArray] = default_B0,
+    impurities: FlexibleArray = 0.0,
     impurities_type: Type[Impurities] = SootSNICAR3,
-    refrac_index: Union[str, ArrayOrScalar, Callable] = "p2016",
-    soilalbedo: ArrayOrScalar = 0.0,
-    dir_frac: ArrayOrScalar = 0.0,
-    totflux: ArrayOrScalar = 1.0,
-    diff_method: str = "aart eq",
-    infprop_method: str = "delta_eddington",
-    sza: ArrayOrScalar = 0.0,
-) -> tuple[npt.NDArray, npt.NDArray]:
+    refrac_index: Union[str, FlexibleArray, Callable] = 'p2016',
+    soilalbedo: FlexibleArray = 0.0,
+    dir_frac: FlexibleArray = 0.0,
+    totflux: FlexibleArray = 1.0,
+    diff_method: str = 'aart eq',
+    infprop_method: str = 'delta_eddington',
+    sza: FlexibleArray = 0.0,
+) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """compute the upwelling and downwelling irradiance at every depth z. The parameters are the same as for the
     absorption_profile function plus the depths z. If both the albedo and the absorption_profile is needed, a direct
     call to the tartes function is recommended.
@@ -398,24 +399,24 @@ def irradiance_profiles(
 
 
 def actinic_profile(
-    wavelength: ArrayOrScalar,
-    z: ArrayOrScalar,
-    SSA: ArrayOrScalar,
-    density: Optional[ArrayOrScalar] = None,
-    thickness: Optional[ArrayOrScalar] = None,
-    shape_parameterization: str = "robledano23",
-    g0: ArrayOrScalar = default_g0,
-    B0: Union[str, ArrayOrScalar] = default_B0,
-    impurities: ArrayOrScalar = 0.0,
+    wavelength: FlexibleArray,
+    z: FlexibleArray,
+    SSA: FlexibleArray,
+    density: Optional[FlexibleArray] = None,
+    thickness: Optional[FlexibleArray] = None,
+    shape_parameterization: str = 'robledano23',
+    g0: FlexibleArray = default_g0,
+    B0: Union[str, FlexibleArray] = default_B0,
+    impurities: FlexibleArray = 0.0,
     impurities_type: Type[Impurities] = SootSNICAR3,
-    refrac_index: Union[str, ArrayOrScalar, Callable] = "p2016",
-    soilalbedo: ArrayOrScalar = 0.0,
-    dir_frac: ArrayOrScalar = 0.0,
-    totflux: ArrayOrScalar = 1.0,
-    diff_method: str = "aart eq",
-    infprop_method: str = "delta_eddington",
-    sza: ArrayOrScalar = 0.0,
-) -> npt.NDArray:
+    refrac_index: Union[str, FlexibleArray, Callable] = 'p2016',
+    soilalbedo: FlexibleArray = 0.0,
+    dir_frac: FlexibleArray = 0.0,
+    totflux: FlexibleArray = 1.0,
+    diff_method: str = 'aart eq',
+    infprop_method: str = 'delta_eddington',
+    sza: FlexibleArray = 0.0,
+) -> npt.NDArray[np.floating]:
     """compute the actinic flux at every depth z. The parameters are the same as for the irradiance profile.
 
     :param wavelength: wavelength (m)
@@ -496,7 +497,7 @@ def actinic_profile(
 
 
 def atmospheric_incident_spectrum(
-    wavelength: ArrayOrScalar, sza: float, cloud_optical_depth: float
+    wavelength: FlexibleArray, sza: float, cloud_optical_depth: float
 ) -> tuple[npt.NDArray, npt.NDArray]:
     """return incident total flux and dir_frac computed with SBDART and ready to use for TARTES.
     offers much less control than directly calling SBDART or other atmospheric radative transfer model.
@@ -518,11 +519,11 @@ def atmospheric_incident_spectrum(
     settings = dict(atmosrt.settings.defaults)
 
     wavelength = np.atleast_1d(wavelength)
-    settings["lower_limit"] = np.min(wavelength) * 1e6
-    settings["upper_limit"] = np.max(wavelength) * 1e6
-    settings["resolution"] = max(np.min(np.diff(wavelength)) * 1e6, 0.001)  # um
+    settings['lower_limit'] = np.min(wavelength) * 1e6
+    settings['upper_limit'] = np.max(wavelength) * 1e6
+    settings['resolution'] = max(np.min(np.diff(wavelength)) * 1e6, 0.001)  # um
 
-    settings["cloud_optical_depth"] = cloud_optical_depth
+    settings['cloud_optical_depth'] = cloud_optical_depth
     model = atmosrt.SBdart(
         settings,
         time=datetime.datetime(2020, 3, 20, 12, 0),
@@ -532,8 +533,8 @@ def atmospheric_incident_spectrum(
 
     spec = model.spectrum()
 
-    totflux = np.interp(wavelength, spec.index * 1e-6, spec["global"])
-    direct = np.interp(wavelength, spec.index * 1e-6, spec["direct"])
+    totflux = np.interp(wavelength, spec.index * 1e-6, spec['global'])
+    direct = np.interp(wavelength, spec.index * 1e-6, spec['direct'])
     return totflux, direct / totflux
 
 
@@ -575,18 +576,20 @@ def shape_parameter_variations(
 
     """
 
-    if shape_parameterization == "robledano23":
-        B = nr ** 2
+    if shape_parameterization == 'robledano23':
+        B = nr**2
         ginf = g00 = robledano23_g0
-    elif shape_parameterization == "constant":
+    elif shape_parameterization == 'constant':
         B = B0
         ginf = g00 = g0
-    elif shape_parameterization == "linear":
+    elif shape_parameterization == 'linear':
         ginf = 0.9751 - 0.105 * (nr - 1.3)
         g00 = g0 - 0.38 * (nr - 1.3)
         B = B0 + 0.4 * (nr - 1.3)
     else:
-        raise Exception("The argument shape_parameterization is incorrect. Refer to the documentation for possible options")
+        raise Exception(
+            'The argument shape_parameterization is incorrect. Refer to the documentation for possible options'
+        )
 
     W = W0 + 0.17 * (nr - 1.3)
     y = y0 + 0.752 * (nr - 1.3)
@@ -631,17 +634,13 @@ def impurities_co_single_scattering_albedo(
         # return 2/(density*SSA) * mae_impurities * impurities_content * density
         return 2.0 / SSA * mae_impurities * impurities_content
 
-    if hasattr(impurities_type, "__iter__"):
+    if hasattr(impurities_type, '__iter__'):
         assert isinstance(impurities_content, Sequence)
         cossalb = 0.0
         for i, species in enumerate(impurities_type):
-            cossalb += one_species_co_albedo(
-                wavelength, SSA, impurities_content[i], species
-            )
+            cossalb += one_species_co_albedo(wavelength, SSA, impurities_content[i], species)
     else:
-        cossalb = one_species_co_albedo(
-            wavelength, SSA, impurities_content, impurities_type
-        )
+        cossalb = one_species_co_albedo(wavelength, SSA, impurities_content, impurities_type)
 
     return cossalb
 
@@ -652,10 +651,10 @@ def single_scattering_optical_parameters(
     SSA: ArrayOrScalar,
     impurities_content: Optional[ArrayOrScalar] = None,
     impurities_type: Optional[Type[Impurities]] = None,
-    shape_parameterization: str = "robledano23",
+    shape_parameterization: str = 'robledano23',
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
-) -> tuple[ArrayOrScalar]:
+) -> tuple[ArrayOrScalar, ArrayOrScalar]:
     """return single scattering parameters of one layer
     see doc Section 2.3, 2.5, 2.6
 
@@ -670,13 +669,13 @@ def single_scattering_optical_parameters(
     :type impurities: dict
 
     :returns: total single scattering albedo and asymmetry factor"""
-    if refrac_index == "w2008":
+    if refrac_index == 'w2008':
         # should be cached when the same wavelengths are used
         refrac_index = refice2008(wavelength)
-    elif refrac_index == "w1995":
+    elif refrac_index == 'w1995':
         # should be cached when the same wavelengths are used
         refrac_index = refice1995(wavelength)
-    elif (refrac_index is None) or (refrac_index == "p2016"):
+    elif (refrac_index is None) or (refrac_index == 'p2016'):
         # should be cached when the same wavelengths are used
         refrac_index = refice2016(wavelength)
     elif callable(refrac_index):
@@ -700,9 +699,7 @@ def single_scattering_optical_parameters(
     cossalb = 0.5 * (1 - W) * (1 - np.exp(-c * phi))
 
     # adding co- single scattering albedo for impureties
-    cossalb += impurities_co_single_scattering_albedo(
-        wavelength, SSA, impurities_content, impurities_type
-    )
+    cossalb += impurities_co_single_scattering_albedo(wavelength, SSA, impurities_content, impurities_type)
 
     ssalb = 1.0 - cossalb
 
@@ -756,8 +753,8 @@ def infinite_medium_optical_parameters_aart(
     :returns: albedo and normalised AFEC
     """
 
-    g_star = g #/ (1 + g)
-    ssalb_star = ssalb #* (1 - g**2) / (1 - g**2 * ssalb)
+    g_star = g  # / (1 + g)
+    ssalb_star = ssalb  # * (1 - g**2) / (1 - g**2 * ssalb)
 
     ke = np.sqrt(3 * (1.0 - ssalb_star) * (1.0 - ssalb_star * g_star))
     albedo = np.exp(-4 * np.sqrt((1.0 - ssalb_star) / (3 * (1.0 - g_star))))
@@ -767,8 +764,8 @@ def infinite_medium_optical_parameters_aart(
 
 # register the possible option for the infinite_medium_optical_parameters calculation
 infinite_medium_optical_parameters = {
-    "delta_eddington": infinite_medium_optical_parameters_delta_eddington,
-    "aart": infinite_medium_optical_parameters_aart,
+    'delta_eddington': infinite_medium_optical_parameters_delta_eddington,
+    'aart': infinite_medium_optical_parameters_aart,
 }
 
 
@@ -779,7 +776,7 @@ def taustar_vector_delta_eddington(
     g: ArrayOrScalar,
     ke: ArrayOrScalar,
 ):
-    """compute the taustar and dtaustar of the snowpack for the delta-eddington formulation, 
+    """compute the taustar and dtaustar of the snowpack for the delta-eddington formulation,
     the optical depth of each layer and cumulated optical depth
     see doc Section 1.2, 1.8, 2.4
 
@@ -850,8 +847,8 @@ def taustar_vector_aart(
 
 # register the possible option for the infinite_medium_optical_parameters calculation
 taustar_vector = {
-    "delta_eddington": taustar_vector_delta_eddington,
-    "aart": taustar_vector_aart,
+    'delta_eddington': taustar_vector_delta_eddington,
+    'aart': taustar_vector_aart,
 }
 
 
@@ -879,35 +876,30 @@ class Streams(object):
         self.compute_2stream_diff = False
 
         if np.any(dir_frac < 1):  # we need diffuse
-            if diff_method == "aart eq":
+            if diff_method == 'aart eq':
                 # solution of 3/7 (1+2 \cos(\theta)) = 1
                 mu_list.append((7 / 3 - 1) / 2)  # about 48.2°
                 self.nstreams_diff = 1
                 self.compute_2stream_diff = False
-            elif diff_method in "integration":
+            elif diff_method in 'integration':
                 nstreams_integration = 128
                 mu_list += list(np.arange(1, 0, -1 / nstreams_integration))
                 self.nstreams_diff = nstreams_integration
                 self.compute_2stream_diff = False
-            elif diff_method == "2 streams":
+            elif diff_method == '2 streams':
                 self.nstreams_diff = 1
                 self.compute_2stream_diff = True
             else:
-                raise Exception(
-                    f"the method to compute diffuse '{diff_method}' radiation is not recognized."
-                )
+                raise Exception(f"the method to compute diffuse '{diff_method}' radiation is not recognized.")
 
         self.mu = np.array(mu_list)
 
     @property
     def nstreams_return(self):
-        return max(
-            1, self.nstreams_dir + 1 if self.return_dir_diff else self.nstreams_dir
-        )
+        return max(1, self.nstreams_dir + 1 if self.return_dir_diff else self.nstreams_dir)
 
-    def process_output(
-        self, x: npt.NDArray, mu: npt.NDArray, dir_frac: float
-    ) -> npt.NDArray[np.floating]:
+    def process_output(self, x: npt.NDArray, mu: npt.NDArray, dir_frac: float) -> npt.NDArray[np.floating]:
+
         if self.nstreams_diff > 1:
             # integration
             assert not self.compute_2stream_diff  # both are incompatible
@@ -929,11 +921,11 @@ class Streams(object):
 
 
 def two_stream_matrix(
-    layeralbedo: npt.NDArray,
+    layeralbedo: npt.NDArray[np.floating],
     soilalbedo: float,
-    ke: npt.NDArray,
-    dtaustar: npt.NDArray,
-) -> npt.NDArray[np.float64]:
+    ke: npt.NDArray[np.floating],
+    dtaustar: npt.NDArray[np.floating],
+) -> npt.NDArray[np.floating]:
     """compute the matrix describing the boundary conditions at one wavelength.
     see doc Section 1.5
 
@@ -1004,9 +996,7 @@ def Gp_Gm_vectors_delta_eddington(
     gamma4 = 0.25 * (2 + 3 * g_star * mu)
 
     # G = mu**2 * ssalb_star / ((ke * mu)**2 - 1)
-    G = (
-        mu * ssalb_star / ((ke * mu) ** 2 - 1)
-    )  # mu instead of mu**2 because we have factorized out mu*Fdot
+    G = mu * ssalb_star / ((ke * mu) ** 2 - 1)  # mu instead of mu**2 because we have factorized out mu*Fdot
     Gp = G * ((gamma1 - 1 / mu) * gamma3 + gamma2 * gamma4)
     Gm = G * ((gamma1 + 1 / mu) * gamma4 + gamma2 * gamma3)
 
@@ -1055,9 +1045,7 @@ def Gp_Gm_vectors_aart(
     # g_star = g #/ (1 + g)
     # ssalb_star = ssalb #* (1 - g**2) / (1 - g**2 * ssalb)
 
-    G0 = (
-        mu * ssalb / ((ke * mu) ** 2 - 1)
-    )  # mu instead of mu**2 because we have factorized out mu*Fdot
+    G0 = mu * ssalb / ((ke * mu) ** 2 - 1)  # mu instead of mu**2 because we have factorized out mu*Fdot
 
     a = 4 * np.sqrt((1 - ssalb) / (3 * (1 - g)))
     albedo_diff = np.exp(-a)
@@ -1072,8 +1060,8 @@ def Gp_Gm_vectors_aart(
 
 # register the possible option for the Gp_Gp_vectors calculation
 Gp_Gm_vectors = {
-    "delta_eddington": Gp_Gm_vectors_delta_eddington,
-    "aart": Gp_Gm_vectors_aart,
+    'delta_eddington': Gp_Gm_vectors_delta_eddington,
+    'aart': Gp_Gm_vectors_aart,
 }
 
 
@@ -1117,12 +1105,8 @@ def two_stream_vector(
     if nlyr > 1:
         dGp = np.diff(Gp, axis=0)
         dGm = np.diff(Gm, axis=0)
-        vect[1:-2:2] = (dGm - layeralbedo[1:, np.newaxis] * dGp) * np.exp(
-            -taustar[0:-1, np.newaxis] / mu
-        )
-        vect[2:-1:2] = (dGp - layeralbedo[0:-1, np.newaxis] * dGm) * np.exp(
-            -taustar[0:-1, np.newaxis] / mu
-        )
+        vect[1:-2:2] = (dGm - layeralbedo[1:, np.newaxis] * dGp) * np.exp(-taustar[0:-1, np.newaxis] / mu)
+        vect[2:-1:2] = (dGp - layeralbedo[0:-1, np.newaxis] * dGm) * np.exp(-taustar[0:-1, np.newaxis] / mu)
     vect[-1] = (soilalbedo * (Gm[-1] + 1) - Gp[-1]) * np.exp(
         -taustar[-1] / mu
     )  # 1 is due to the factorization of mu*Fodot
@@ -1158,13 +1142,11 @@ def solve_two_stream(
 
     solution0 = solve_banded((1, 1), dmatrix, vect)
 
-    assert solution0.shape[0] == 2 * len(
-        layeralbedo
-    ), f"problem with the shape of solution0: {solution0.shape}"
+    assert solution0.shape[0] == 2 * len(layeralbedo), f'problem with the shape of solution0: {solution0.shape}'
     assert len(solution0.shape) in [
         1,
         2,
-    ], f"problem with the shape of solution0: {solution0.shape}"
+    ], f'problem with the shape of solution0: {solution0.shape}'
 
     solution_A = solution0[:-1:2]
     solution_B = solution0[1::2]
@@ -1279,9 +1261,7 @@ def get_absorption_profile(
     expp = np.exp(ke[1:] * dtaustar[1:])
     expm = np.exp(-ke[1:] * dtaustar[1:])
     fdu = solution_C[1:] * (expm - 1) + solution_D[1:] * (expp - 1) + Gp[1:] * dexp
-    fdd = (
-        solution_A[1:] * (expm - 1) + solution_B[1:] * (expp - 1) + (Gm[1:] + 1) * dexp
-    )  # +1 was mu before
+    fdd = solution_A[1:] * (expm - 1) + solution_B[1:] * (expp - 1) + (Gm[1:] + 1) * dexp  # +1 was mu before
 
     absprofile[1:] = fdu - fdd
 
@@ -1342,24 +1322,21 @@ def get_soil_absorption(
 
 
 class DepthGenerator(object):
-    def __init__(self, z: ArrayOrScalar, thickness: ArrayOrScalar):
+    def __init__(self, z: ArrayOrScalar, thickness: npt.NDArray[np.floating]):
         self.z = np.array(z)
         thickness = np.atleast_1d(thickness)
         self.thickness_total = np.zeros(len(thickness) + 1)
         self.thickness_total[1:] = np.cumsum(thickness)
 
         # number of the layer (1,2...)
-        self.nearest_layer = np.searchsorted(self.thickness_total, z, side="right")
+        self.nearest_layer = np.searchsorted(self.thickness_total, z, side='right')
 
         bottom = z == self.thickness_total[-1]  # if very close to the bottom...
-        self.nearest_layer[bottom] = (
-            len(self.thickness_total) - 1
-        )  # take the last layer
+        self.nearest_layer[bottom] = len(self.thickness_total) - 1  # take the last layer
         self.nearest_layer[z > self.thickness_total[-1]] = -1
 
-
     def __call__(
-        self, dtaustar_ub: ArrayOrScalar, taustar: ArrayOrScalar
+        self, dtaustar_ub: npt.NDArray[np.floating], taustar: npt.NDArray[np.floating]
     ) -> Generator[tuple[int, int, np.floating, np.floating], None, None]:
         # it is probably possible to optimize this loop (-> array calculation)
         for nz0, z0 in enumerate(self.z):
@@ -1414,9 +1391,7 @@ def get_irradiance_profiles(
             + direct_only * (Gm[nl - 1] + 1) * np.exp(-taustar_z / mu)
         )  # + 1 was mu before
         up_irr_profile[nz0] = (
-            solution_C[nl - 1] * expm
-            + solution_D[nl - 1] * expp
-            + direct_only * Gp[nl - 1] * np.exp(-taustar_z / mu)
+            solution_C[nl - 1] * expm + solution_D[nl - 1] * expp + direct_only * Gp[nl - 1] * np.exp(-taustar_z / mu)
         )
 
     return (
@@ -1456,15 +1431,13 @@ def get_actinic_profile(
         # the factor 2 in the following equations converts the radiation flux into actinic flux.
         # diffuse radiation are given a factor of 2 while the direct radiation (only one term actually) has a factor of 1.
         # this is consistent with the two-stream approximation as used in TARTES.
-
         actinic_profile[nz0] = (
             2 * (solution_A[nl - 1] + solution_C[nl - 1]) * expm
             + 2 * (solution_B[nl - 1] + solution_D[nl - 1]) * expp
-            + (2 * Gm[nl - 1] + 2 * Gp[nl - 1] + 1 + diffuse2actinic)
-            * np.exp(-taustar_z / mu)
+            + (2 * Gm[nl - 1] + 2 * Gp[nl - 1] + 1 + diffuse2actinic) * np.exp(-taustar_z / mu)
         )
 
-    return streams.process_output(actinic_profile, mu, dir_frac)[:, np.newaxis]
+    return streams.process_output(actinic_profile, mu, dir_frac)
 
 
 def estimate_effective_layer_number(ke: npt.NDArray, dtaustar: ArrayOrScalar):
@@ -1482,7 +1455,7 @@ def estimate_effective_layer_number(ke: npt.NDArray, dtaustar: ArrayOrScalar):
     nlyrmax = np.empty(ke.shape[0], dtype=np.int32)
     for i in range(len(nlyrmax)):
         # +1 added compared with Quentin's code
-        nlyrmax[i] = np.searchsorted(tau[i, :], taumax, side="right") + 1
+        nlyrmax[i] = np.searchsorted(tau[i, :], taumax, side='right') + 1
 
     return nlyrmax
 
@@ -1490,7 +1463,7 @@ def estimate_effective_layer_number(ke: npt.NDArray, dtaustar: ArrayOrScalar):
 def soa(x: Union[ArrayOrScalar, dict], i: int) -> float:
     # allow scalar or array/list
 
-    if hasattr(x, "__iter__") and not isinstance(x, dict) and not isinstance(x, str):
+    if hasattr(x, '__iter__') and not isinstance(x, dict) and not isinstance(x, str):
         return x[i]
     else:
         return x
@@ -1501,17 +1474,17 @@ def tartes(
     SSA: ArrayOrScalar,
     density: Optional[ArrayOrScalar] = None,
     thickness: Optional[ArrayOrScalar] = None,
-    shape_parameterization: str = "robledano23",
+    shape_parameterization: str = 'robledano23',
     g0: ArrayOrScalar = default_g0,
     B0: Union[str, ArrayOrScalar] = default_B0,
     impurities: ArrayOrScalar = 0.0,
     impurities_type: Type[Impurities] = SootSNICAR3,
-    refrac_index: Union[str, ArrayOrScalar, Callable] = "p2016",
+    refrac_index: Union[str, ArrayOrScalar, Callable] = 'p2016',
     soilalbedo: ArrayOrScalar = 0.0,
     dir_frac: ArrayOrScalar = 0.0,
     totflux: ArrayOrScalar = 1.0,
-    diff_method: str = "aart eq",
-    infprop_method: str = "delta_eddington",
+    diff_method: str = 'aart eq',
+    infprop_method: str = 'delta_eddington',
     mudir: ArrayOrScalar = 0.0,
     return_dir_diff: bool = False,
     compute_absorption: bool = False,
@@ -1519,9 +1492,9 @@ def tartes(
     compute_actinic_profile: bool = False,
     z: Optional[ArrayOrScalar] = None,
 ) -> Union[
-    npt.NDArray,
-    tuple[npt.NDArray, npt.NDArray],
-    tuple[npt.NDArray, npt.NDArray, npt.NDArray],
+    npt.NDArray[np.floating],
+    tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]],
+    tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]],
 ]:
     """compute spectral albedo, and optionally the absorption in each layer and in the soil, the downwelling and upwelling
     irradiance profiles and the actinic flux from the physical properties of the snowpack and the incidence flux conditions.
@@ -1594,9 +1567,7 @@ def tartes(
 
     if density is None:
         if thickness is not None:
-            raise Exception(
-                "no density argument is only allowed for semi-infinite snowpacks (thickness=None)"
-            )
+            raise Exception('no density argument is only allowed for semi-infinite snowpacks (thickness=None)')
         density = 300.0  # any value is good for semi-infinite snowpacks
 
     if thickness is None:
@@ -1609,7 +1580,6 @@ def tartes(
     if not np.isscalar(SSA):
         SSA = np.array(SSA)
         assert len(SSA) == nlyr
-
 
     if not np.isscalar(density):
         density = np.array(density)
@@ -1667,8 +1637,8 @@ def two_stream_rt(
     totflux: ArrayOrScalar = 1.0,
     mudir: ArrayOrScalar = 0,
     return_dir_diff: bool = False,
-    diff_method: str = "aart eq",
-    infprop_method: str = "delta_eddington",
+    diff_method: str = 'aart eq',
+    infprop_method: str = 'delta_eddington',
     compute_absorption: bool = False,
     compute_irradiance_profiles: bool = False,
     compute_actinic_profile: bool = False,
@@ -1692,9 +1662,7 @@ def two_stream_rt(
         return_dir_diff=return_dir_diff,
     )
 
-    if streams.compute_2stream_diff and (
-        compute_absorption or compute_irradiance_profiles or compute_actinic_profile
-    ):
+    if streams.compute_2stream_diff and (compute_absorption or compute_irradiance_profiles or compute_actinic_profile):
         raise Exception(
             """compute_absorption_profile, compute_irradiance_profiles and compute_actinic_profile are incompatible 
 with the diffuse 2 stream calculation."""
@@ -1726,9 +1694,7 @@ with the diffuse 2 stream calculation."""
     ke = np.empty_like(infalb)
 
     for n in range(nlyr):
-        infalb[:, n], ke[:, n] = infinite_medium_optical_parameters[infprop_method](
-            ssalb[:, n], g[:, n]
-        )
+        infalb[:, n], ke[:, n] = infinite_medium_optical_parameters[infprop_method](ssalb[:, n], g[:, n])
 
     # 2 computation on every wavelength and layer of the optical depth
     dtaustar_ub, dtaustar, taustar = taustar_vector[infprop_method](sigext, thickness, ssalb, g, ke)
@@ -1755,9 +1721,7 @@ with the diffuse 2 stream calculation."""
         dir_frac_i = soa(dir_frac, i)
 
         if len(mu) > 0:
-            Gp_i, Gm_i = Gp_Gm_vectors[infprop_method](
-                ssalb[i, :neff], ke_i, g[i, :neff], mu
-            )
+            Gp_i, Gm_i = Gp_Gm_vectors[infprop_method](ssalb[i, :neff], ke_i, g[i, :neff], mu)
         else:
             # if only diffuse is required, it is not necessary to compute G
             Gp_i = Gm_i = np.zeros(neff)
@@ -1846,11 +1810,7 @@ with the diffuse 2 stream calculation."""
                 depth_generator,
             )
 
-    if (
-        not compute_absorption
-        and not compute_irradiance_profiles
-        and not compute_actinic_profile
-    ):
+    if not compute_absorption and not compute_irradiance_profiles and not compute_actinic_profile:
         return albedo.squeeze()
     else:
         ret = [albedo.squeeze()]
