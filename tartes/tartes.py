@@ -31,6 +31,10 @@ import scipy.integrate
 from .impurities import Impurities, SootSNICAR3
 from .refractive_index import refice1995, refice2008, refice2016
 
+# constants for convenience
+C_SPEED = 299792458.
+H_PLANCK = 6.62607015e-34 
+
 
 # Many tartes arguments can be array or scalar of float/int
 ArrayOrScalar = Union[npt.NDArray[np.floating], float, int]
@@ -77,8 +81,10 @@ def broadband_albedo(
 
     :param wavelength: wavelength (m)
     :type wavelength: array
-    :param totflux: spectrum of incident direct+diffuse radiation  at the surface
-    :param dir_frac: spectrum of fraction of the direct radiation
+    :param totflux: total spectral incident flux across the horizontal surface (direct+diffuse). 
+        The direct flux can be calculated from the direct beam radiance F0 incoming at the incidence theta_inc with F0 x
+        cos(theta_inc). The unit of totflux is at the user's discretion as TARTES internal calculation is relative to
+        the incoming flux. :param dir_frac: spectrum of fraction of the direct radiation
     :param SSA: surface specific area (m^2/kg) for each layer
     :type SSA: array
     :param **kwagrs: all the other optional parametres of the :py:func:`albedo` function
@@ -220,53 +226,57 @@ def absorption_profile(
     """compute the energy absorbed in every layer and in the soil. The parameters are the same as for the albedo function. If
     both the albedo and the absorption_profile is needed, a direct call to the tartes function is recommended.
 
-        :param wavelength: wavelength (m)
-        :type wavelength: array
-        :param SSA: surface specific area (m^2/kg) for each layer
-        :type SSA: array
-        :param density: density (kg/m^3)
-        :type density: array
-        :param thickness: thickness of each layer (m). By default is None meaning a semi-infinite medium.
-        :type thickness: array
-        :param shape_parameterization: method to determine the values of B and g as a function of the wavelength.
-            "robledano23", the default, use B=n^2 and a constant defaut g. "constant" uses B0 and g0 parameters for all
-            wavelengths. "linear" use the linear relationships as a function of the refractive index deduced from Kokhanosvky
-            2004 tables (p61).
-        :param g0: asymmetry parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The default value is
-            0.86. g0 can be scalar (constant in the snowpack) or an array like the SSA.
-        :type g0: array or scalar
-        :param B0: absorption enhancement parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The
-            default value is 1.6, taken from Libois et al. 2014. B0 can be scalar (constant in the snowpack) or an array like the
-            SSA.
-        :type B0: array or scalar
-        :param impurities: impurities concentration (kg/kg) in each layer. It is either a constant or an array with size equal
-            to the number of layers. The array is 1-d if only one type of impurities is used and 2-d otherwise.
-        :type impurities: array or scalar
-        :param impurities_type: specify the type of impurity. By defaut it is "soot". Otherwise it should be a class (or an
-            instance) defining the density and the imaginary part of the refractive index like the Soot class (see tartes.impurities
-            for possible choices and to add new impurities types). It can also be a list of classes if several impurities type are
-            present in the snowpack. In this case, the impurities parameter must be a 2-d array.
-        :type impurities_type: object or list of object
-        :param soilalbedo: spectral albedo of the underlying (no unit). albedo can be a scalar or an array like wavelength.
-        :type soilalbedo: scalar or array
-        :param dir_frac: fraction of directional flux over the total flux (the default is dir_frac = 0 meaning 100% diffuse
-            incident flux)
-        :type dir_frac: array
-        :param totflux: total spectral incident flux (direct+diffuse) (free unit)
-        :type totflux: array
-        :param diff_method: the method used to compute the diffuse radiation. Possible options are
-            1) "aart eq" which perform direct calculation at the 48.2° equivalent angle according to AART,
-            2) "integration" which performs the integration of incident radiation over the incidence angle (precise but slow),
-            The first one is the default, a trade off between speed and accuracy.
-        :type diff_method: array or scalar
-        :param sza: incident angle of direct light (degrees, 0 means nadir)
-        :type sza: scalar
-        :param refrac_index: real and imaginary parts of the refractive index for each wavelength or a string "p2016" for Picard
-            et al. 2016 or w2008 for Warren and Brandt 2008 or w1995 for Warren, 1984 modified as noted on Warren web site.:type
-            refrac_index: string or tuple of two arrays
+    :param wavelength: wavelength (m)
+    :type wavelength: array
+    :param SSA: surface specific area (m^2/kg) for each layer
+    :type SSA: array
+    :param density: density (kg/m^3)
+    :type density: array
+    :param thickness: thickness of each layer (m). By default is None meaning a semi-infinite medium.
+    :type thickness: array
+    :param shape_parameterization: method to determine the values of B and g as a function of the wavelength.
+        "robledano23", the default, use B=n^2 and a constant defaut g. "constant" uses B0 and g0 parameters for all
+        wavelengths. "linear" use the linear relationships as a function of the refractive index deduced from Kokhanosvky
+        2004 tables (p61).
+    :param g0: asymmetry parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The default value is
+        0.86. g0 can be scalar (constant in the snowpack) or an array like the SSA.
+    :type g0: array or scalar
+    :param B0: absorption enhancement parameter of snow grains at nr=1.3 and at non absorbing wavelengths (no unit). The
+        default value is 1.6, taken from Libois et al. 2014. B0 can be scalar (constant in the snowpack) or an array like the
+        SSA.
+    :type B0: array or scalar
+    :param impurities: impurities concentration (kg/kg) in each layer. It is either a constant or an array with size equal
+        to the number of layers. The array is 1-d if only one type of impurities is used and 2-d otherwise.
+    :type impurities: array or scalar
+    :param impurities_type: specify the type of impurity. By defaut it is "soot". Otherwise it should be a class (or an
+        instance) defining the density and the imaginary part of the refractive index like the Soot class (see tartes.impurities
+        for possible choices and to add new impurities types). It can also be a list of classes if several impurities type are
+        present in the snowpack. In this case, the impurities parameter must be a 2-d array.
+    :type impurities_type: object or list of object
+    :param soilalbedo: spectral albedo of the underlying (no unit). albedo can be a scalar or an array like wavelength.
+    :type soilalbedo: scalar or array
+    :param dir_frac: fraction of directional flux over the total flux (the default is dir_frac = 0 meaning 100% diffuse
+        incident flux)
+    :type dir_frac: array
+    :param totflux: total spectral incident flux across the horizontal surface (direct+diffuse). 
+        The direct flux can be calculated from the direct beam radiance F0 incoming at the incidence theta_inc with F0 x
+        cos(theta_inc). The unit of totflux is at the user's discretion as TARTES internal calculation is relative to
+        the incoming flux. Only the returned result is multiplied by totflux. A usual unit is W /m^2 /nm. 
+    :type totflux: array
+    :param diff_method: the method used to compute the diffuse radiation. Possible options are
+        1) "aart eq" which perform direct calculation at the 48.2° equivalent angle according to AART,
+        2) "integration" which performs the integration of incident radiation over the incidence angle (precise but slow),
+        The first one is the default, a trade off between speed and accuracy.
+    :type diff_method: array or scalar
+    :param sza: incident angle of direct light (degrees, 0 means nadir)
+    :type sza: scalar
+    :param refrac_index: real and imaginary parts of the refractive index for each wavelength or a string "p2016" for Picard
+        et al. 2016 or w2008 for Warren and Brandt 2008 or w1995 for Warren, 1984 modified as noted on Warren web site.:type
+        refrac_index: string or tuple of two arrays
 
-        :returns: spectral absorption in every layer and in the soil. The return type is an array with the first dimension for
-        the wavelength and the second for the layers + an extra value for the soil. If the wavelength is a scalar, the first
+    :returns: spectral absorption in every layer and in the soil. The unit is determined by the
+        unit of totflux. The return type is an array with the first dimension for the wavelength and the second for the
+        layers + an extra value for the soil. If the wavelength is a scalar, the first
         dimension is squeezed.
     """
 
@@ -353,7 +363,10 @@ def irradiance_profiles(
     :param dir_frac: fraction of directional flux over the total flux (the default is dir_frac = 0 meaning 100% diffuse
         incident flux) at every wavelength
     :type dir_frac: array
-    :param totflux: total spectral incident flux (direct+diffuse) (W/m^2)
+    :param totflux: total spectral incident flux across the horizontal surface (direct+diffuse). 
+        The direct flux can be calculated from the direct beam radiance F0 incoming at the incidence theta_inc with F0 x
+        cos(theta_inc). The unit of totflux is at the user's discretion as TARTES internal calculation is relative to
+        the incoming flux. Only the returned result is multiplied by totflux. A usual unit is W /m^2 /nm. 
     :type totflux: array
     :param diff_method: the method used to compute the diffuse radiation. Possible options are
         1) "aart eq" which perform direct calculation at the 48.2° equivalent angle according to AART,
@@ -367,9 +380,9 @@ def irradiance_profiles(
         site.
     :type refrac_index: string or tuple of two arrays
 
-    :returns: a tupple with downwelling and upwelling irradiance profiles. The return type is an array with the first
-        dimension for the wavelength and the second for the layers. If the wavelength argument is a scalar, the first
-        dimension is squeezed.
+    :returns: a tuple with downwelling and upwelling irradiance profiles. The unit is determined by the
+        unit of totflux. The return type is an array with the first dimension for the wavelength and the second for the layers. If
+        the wavelength argument is a scalar, the first dimension is squeezed.
     """
 
     mudir = np.cos(np.deg2rad(sza))
@@ -419,6 +432,13 @@ def actinic_profile(
 ) -> npt.NDArray[np.floating]:
     """compute the actinic flux at every depth z. The parameters are the same as for the irradiance profile.
 
+    Note that the incoming totflux is the spectral flux across an horizontal surface (a.k.a irradiance). To convert a
+    radiance of a direct beam to totflux, the radiance must be multiplied by cos(theta_inc).
+    The returned values of this function has the same unit as totflux. 
+
+    If totflux is given in W/m^2/nm, to obtain the result in photons / m^2 / s, the user must divide the returned values
+    by the energy of a single photon: H_PLANCK * C_SPEED / wavelength(nm).
+
     :param wavelength: wavelength (m)
     :type wavelength: array
     :param z: depths at which the irradiance are calculated (m)
@@ -458,7 +478,10 @@ def actinic_profile(
         2) "integration" which performs the integration of incident radiation over the incidence angle (precise but slow),
         The first one is the default, a trade off between speed and accuracy.
     :type diff_method: array or scalar
-    :param totflux: total spectral incident flux (direct+diffuse) (W/m^2)
+    :param totflux: total spectral incident flux across the horizontal surface (direct+diffuse). 
+        The direct flux can be calculated from the direct beam radiance F0 incoming at the incidence theta_inc with F0 x
+        cos(theta_inc). The unit of totflux is at the user's discretion as TARTES internal calculation is relative to
+        the incoming flux. Only the returned result is multiplied by totflux. A usual unit is W /m^2 /nm.
     :type totflux: array
     :param sza: solar zenith angle of direct light (degree, 0 means nadir)
     :type sza: scalar
@@ -466,7 +489,8 @@ def actinic_profile(
         et al. 2016 or w2008 for Warren and Brandt 2008 or w1995 for Warren, 1984 modified as noted on Warren web site.
     :type refrac_index: string or tuple of two arrays
 
-    :returns: the actinic flux profile. The return type is an array with the first dimension for the wavelength and the
+    :returns: the actinic flux profile. The unit is determined by the
+        unit of totflux. The return type is an array with the first dimension for the wavelength and the
         second for the layers. If the wavelength argument is a scalar, the first dimension is squeezed.
     """
 
@@ -970,7 +994,10 @@ def two_stream_matrix(
 def Gp_Gm_vectors_delta_eddington(
     ssalb: npt.NDArray, ke: npt.NDArray, g: npt.NDArray, mu: npt.NDArray
 ) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
-    """return Gp and Gm vectors at one wavelength
+    """return Gp and Gm vectors at one wavelength. 
+
+    Note that F0 * mu0 (ie totflux) is factorized in Tartes code, it does
+    not appear in G terms, neither in vector V.
 
     :param ssalb: single scattering albedo of each layer (no unit)
     :type ssalb: array
@@ -1026,6 +1053,9 @@ def Gp_Gm_vectors_aart(
 ) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """return Gp and Gm vectors at one wavelength
 
+    Note that F0 * mu0 (ie totflux) is factorized in Tartes code, it does
+    not appear in G terms, neither in vector V.
+
     :param ssalb: single scattering albedo of each layer (no unit)
     :type ssalb: array
     :param ke: delta-eddington AFEC (no unit)
@@ -1077,6 +1107,9 @@ def two_stream_vector(
 ) -> npt.NDArray[np.floating]:
     """compute the vector V for the boundary conditions
     see doc Section 1.5
+
+    Note that F0 * mu0 (ie totflux) is factorized in Tartes code, it does
+    not appear in G terms, neither in vector V.
 
     :param layeralbedo: albedo of the layer if it was infinite
     :type layeralbedo: array
@@ -1176,7 +1209,7 @@ def get_albedo(
     :param mu: cosine of the incident angle of intensity
     :type mu: scalar
 
-    :returns: albedo at one wavelength (W/m^2)"""
+    :returns: albedo at one wavelength"""
 
     if solutions is None:
         return 0
@@ -1223,7 +1256,8 @@ def get_absorption_profile(
     :param mu: cosine of the incident angle of intensity
     :type mu: scalar
 
-    :returns: energy absorbed by each layer (W/m^2). To get W/m3, please divide by layer thickness.
+    :returns: energy absorbed by each layer (same as totux, i.e. usually W/m^2 /nm). To get W / m3 / nm, please divide
+        by layer thickness.
     """
 
     # compute energy absoprtion profile
@@ -1296,7 +1330,8 @@ def get_soil_absorption(
     :param soilalbedo: soil albedo at that wavelength (no unit)
     :type soilalbedo: scalar
 
-    :returns: energy absorbed by the soil at one wavelength (W/m^2)"""
+    :returns: energy absorbed by the soil at one wavelength. Same unit as totflux (usually W / m^2 / nm)
+    """
 
     if solutions is None:
         return 0
@@ -1434,7 +1469,7 @@ def get_actinic_profile(
         actinic_profile[nz0] = (
             2 * (solution_A[nl - 1] + solution_C[nl - 1]) * expm
             + 2 * (solution_B[nl - 1] + solution_D[nl - 1]) * expp
-            + (2 * Gm[nl - 1] + 2 * Gp[nl - 1] + 1 + diffuse2actinic) * np.exp(-taustar_z / mu)
+            + (2 * Gm[nl - 1] + 2 * Gp[nl - 1] + 1 / mu + diffuse2actinic) * np.exp(-taustar_z / mu)
         )
 
     return streams.process_output(actinic_profile, mu, dir_frac)
@@ -1531,7 +1566,10 @@ def tartes(
     :param dir_frac: fraction of directional flux over the total flux (the default is dir_frac = 0 meaning 100% diffuse
         incident flux) at every wavelength
     :type dir_frac: array
-    :param totflux: total spectral incident flux (direct+diffuse) (W/m^2)
+    :param totflux: total spectral incident flux across the horizontal surface (direct+diffuse). 
+        The direct flux can be calculated from the direct beam radiance F0 incoming at the incidence theta_inc with F0 x
+        cos(theta_inc). The unit of totflux is at the user's discretion as TARTES internal calculation is relative to
+        the incoming flux. Only the returned result is multiplied by totflux. A usual unit is W /m^2 /nm.
     :type totflux: array
     :param mudir: cosine of the incident angle of direct light
     :type mudir: scalar
