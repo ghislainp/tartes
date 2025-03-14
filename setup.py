@@ -20,7 +20,7 @@ class PyTest(Command):
 setup(
     name="tartes",
     packages=["tartes"],
-    version="1.4",
+    version="2.0.3",
     description="Two-stream radiative transfer in snow model",
     author="Quentin Libois, Ghislain Picard",
     author_email="quentin.libois@meteo.fr, ghislain.picard@univ-grenoble-alpes.fr",
